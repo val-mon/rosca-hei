@@ -206,4 +206,30 @@ post : "/auction" (params : user_id, circle_id, period_date, ammount)
 
 post : "/flaguser" (params : user_id, circle_id)
 post : "/change_settings" (params : circle_id, name, contribution_ammount, perdiod_duration, auction_mode)
+
+// ADMIN SYSTEM PAGE
+get : "/users" (params : user_token) -> {
+  user_token,
+	name,
+	email,
+	consent,
+}
+
+get : "/circles" (params : user_token) -> {
+	circles {
+    circle_name,
+    join_code,
+    contribution_ammount,
+    members {
+      logged : bool,
+      isadmin : bool,
+      user_id,
+      member_name,
+      contribution_ammount,
+      due_date,
+      penalties {
+        paid
+      }
+	}	
+}
 ```
