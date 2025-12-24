@@ -2,8 +2,8 @@ import { User, Circle, CircleDetails } from '@/lib/types';
 
 export const mockUser: User = {
   id: 1,
-  name: 'John Doe',
-  email: 'john@example.com',
+  name: 'Admin',
+  email: 'admin@example.com',
 };
 
 export const mockCircles: Circle[] = [
