@@ -89,6 +89,19 @@ export interface PaymentResponse {
   message?: string;
 }
 
+export interface ActiveAuction {
+  circleId: number;
+  circleName: string;
+  periodId: number;
+  payoutAmount: number;
+  userBidAmount?: number;
+  currentHighestBid: number;
+  currentWinner: string;
+  isWinning: boolean;
+  endDate: string;
+  timeRemaining: string;
+}
+
 export interface KickMemberResponse {
   success: boolean;
   message?: string;

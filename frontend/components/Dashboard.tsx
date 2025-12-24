@@ -1,15 +1,31 @@
+// components/Dashboard.tsx
+
 import React from 'react';
-import { Users, DollarSign, TrendingUp, LogOut } from 'lucide-react';
+import { Users, DollarSign, TrendingUp, LogOut, Gavel, Trophy, Clock, AlertCircle } from 'lucide-react';
 import { Circle, User } from '@/lib/types';
+
+interface ActiveAuction {
+  circleId: number;
+  circleName: string;
+  periodId: number;
+  payoutAmount: number;
+  userBidAmount?: number;
+  currentHighestBid: number;
+  currentWinner: string;
+  isWinning: boolean;
+  endDate: string;
+  timeRemaining: string;
+}
 
 interface DashboardProps {
   circles: Circle[];
+  activeAuctions: ActiveAuction[];
   onSelectCircle: (circleId: number) => void;
   onLogout: () => void;
   user: User;
 }
 
-export default function Dashboard({ circles, onSelectCircle, onLogout, user }: DashboardProps) {
+export default function Dashboard({ circles, activeAuctions, onSelectCircle, onLogout, user }: DashboardProps) {
   const totalDueNext2Weeks = circles.reduce((sum, circle) => {
     const dueDate = new Date(circle.nextDueDate);
     const today = new Date();
@@ -65,7 +81,7 @@ export default function Dashboard({ circles, onSelectCircle, onLogout, user }: D
         </div>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-4">My Circles</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {circles.map(circle => (
             <div
               key={circle.id}
@@ -129,7 +145,91 @@ export default function Dashboard({ circles, onSelectCircle, onLogout, user }: D
             </div>
           ))}
         </div>
+
+        {/* Active Auctions Section */}
+        {activeAuctions.length > 0 && (
+          <div className="mb-8 gap-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+              <Gavel className="w-6 h-6 mr-2 text-purple-600" />
+              My Active Auctions
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeAuctions.map(auction => (
+                <div
+                  key={`${auction.circleId}-${auction.periodId}`}
+                  onClick={() => onSelectCircle(auction.circleId)}
+                  className={`bg-gradient-to-br ${
+                    auction.isWinning 
+                      ? 'from-green-50 to-emerald-50 border-green-300' 
+                      : 'from-yellow-50 to-orange-50 border-orange-300'
+                  } p-6 rounded-xl shadow-md border-2 hover:shadow-lg transition-all cursor-pointer`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 mb-1">{auction.circleName}</h3>
+                      <p className="text-xs text-gray-600">Period #{auction.periodId}</p>
+                    </div>
+                    {auction.isWinning ? (
+                      <div className="flex items-center space-x-1 bg-green-100 px-2 py-1 rounded-full">
+                        <Trophy className="w-4 h-4 text-green-600" />
+                        <span className="text-xs font-bold text-green-700">Winning</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-1 bg-orange-100 px-2 py-1 rounded-full">
+                        <AlertCircle className="w-4 h-4 text-orange-600" />
+                        <span className="text-xs font-bold text-orange-700">Outbid</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 mb-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Payout:</span>
+                      <span className="font-bold text-gray-900">${auction.payoutAmount}</span>
+                    </div>
+                    {auction.userBidAmount && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Your Bid:</span>
+                        <span className="font-bold text-indigo-600">${auction.userBidAmount}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Highest Bid:</span>
+                      <span className={`font-bold ${
+                        auction.isWinning ? 'text-green-600' : 'text-orange-600'
+                      }`}>
+                        {auction.currentHighestBid} CHF
+                      </span>
+                    </div>
+                    {!auction.isWinning && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Leading:</span>
+                        <span className="font-semibold text-gray-900">{auction.currentWinner}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-200">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center text-gray-600">
+                        <Clock className="w-3 h-3 mr-1" />
+                        <span>{auction.timeRemaining}</span>
+                      </div>
+                      {auction.userBidAmount && (
+                        <div className="text-gray-500">
+                          Net: <span className="font-bold text-gray-700">
+                            {auction.payoutAmount - auction.userBidAmount} CHF
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div >
+    </div>
   );
 }
