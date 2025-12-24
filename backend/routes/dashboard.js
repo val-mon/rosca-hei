@@ -17,17 +17,41 @@ router.get('/userinfo', async (req, res, next) => {
     const user_info = await db.select('"user"', { id: user_id }, 'id, username, email, privacy_consent');
     const userData = user_info[0];
 
+    // get the circles the user belongs to
+    const circlesResult = await db.query(
+      ` SELECT
+          c.id as circle_id,
+          c.name,
+          (SELECT cy.contribution_amount FROM cycle cy WHERE cy.circle_id = c.id ORDER BY cy.id DESC LIMIT 1) as contribution_amount,
+          (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id) as member_count
+        FROM circle c
+        JOIN circle_member cm ON c.id = cm.circle_id
+        WHERE cm.user_id = $1`,
+      [user_id]
+    );
+
+    // calculate payout_amount for each circle (due_date is null for now - needs due_date field in period table)
+    const circles = circlesResult.rows.map(circle => ({
+      circle_id: circle.circle_id,
+      name: circle.name,
+      contribution_amount: circle.contribution_amount,
+      due_date: null,
+      payout_amount: circle.contribution_amount * circle.member_count
+    }));
+
     // send the respond in json
     const rep = {
       user_token,
       id: userData.id,
       username: userData.username,
       email: userData.email,
-      privacy_consent: userData.privacy_consent
+      privacy_consent: userData.privacy_consent,
+      circles
     };
     res.json(rep);
   }
   catch (err) {
+    console.error('ERROR in /dashboard/userinfo:', err.message);
     next(err);
   }
 });

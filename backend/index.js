@@ -21,7 +21,7 @@ app.use('/dashboard', dashboardRoutes);
 
 // error handling middleware, must be last
 app.use((err, req, res, next) => {
-  console.error(`ERROR [${req.method} ${req.originalUrl}]:`, err.message);
+  // console.error(`ERROR [${req.method} ${req.originalUrl}]:`, err.message);
   res.status(500).json({
     error: 'Internal Server Error',
     route: `${req.method} ${req.path}`,
