@@ -6,6 +6,8 @@
 │   ├── 🔐 Login Popup
 │   └── 📝 Signup Popup
 │
+├── 🕵🏻 System Admin Page
+│
 ├── 📊 Dashboard Page
 │   └── ➕ Create Circle Popup
 │
@@ -20,6 +22,8 @@
 ```
 
 # RDB
+Note : to visualize this diagram, paste this code on [dbdiagram.io](https://dbdiagram.io)
+
 ``` sql
 // #region USER
 Table user {
@@ -50,6 +54,7 @@ Ref: "user_token"."user_id" < "user"."id"
 // #endregion
 
 // #region CIRCLE
+// -- A circle = a group of people participating in a rotating savings
 Table circle {
   id serial [primary key]
   name NVARCHAR
@@ -59,10 +64,11 @@ Table circle {
   valid bool
 }
 
+// -- Members of a circle
 Table circle_member {
   circle_id serial [primary key]
   user_id integer
-  is_admin bool
+  is_admin bool               // -- ff true, can modify circle settings
 
   modified_date datetime
   valid bool
@@ -70,19 +76,23 @@ Table circle_member {
 Ref: "circle_member"."user_id" < "user"."id"
 Ref: "circle_member"."circle_id" < "circle"."id"
 
+// -- A cycle = a savings session with N periods (where N = number of members)
 Table cycle {
   id serial [primary key]
   circle_id integer
-  auction_mode bool
+  auction_mode bool               // -- if true, members bid to receive the payout
+  contribution_amount decimal     // -- amount each member must pay per period
 
   modified_date datetime
   valid bool
 }
 Ref: "cycle"."circle_id" < "circle"."id"
 
+// -- A period = a time unit (2 week by default) where contributions are collected
 Table period {
   id serial [primary key]
   cycle_id integer
+
   modified_date datetime
   valid bool
 }
@@ -90,11 +100,12 @@ Ref: "period"."cycle_id" < "cycle"."id"
 // #endregion
 
 // #region MONEY
+// -- Money PAID by a member during a period
 Table contribution {
   id serial [primary key]
   period_id integer
-  user_id integer
-  for_user_id integer
+  user_id integer             // -- member who PAYS
+  for_user_id integer         // -- member who potentially pay for the origninal member
   contribution_date date
   annotation text
 
@@ -105,12 +116,13 @@ Ref: "contribution"."period_id" < "period"."id"
 Ref: "contribution"."user_id" < "user"."id"
 Ref: "contribution"."for_user_id" < "user"."id"
 
+// -- Penalty for a member who did NOT pay on time
 Table penalty {
   id serial [primary key]
   period_id integer
   user_id integer
   contribution_id integer
-  waived tinyint
+  waived tinyint              // -- the circle admin can waived(cancel) the penality
 
   modified_date datetime
   valid bool
@@ -119,6 +131,7 @@ Ref: "penalty"."period_id" < "period"."id"
 Ref: "penalty"."user_id" < "user"."id"
 Ref: "penalty"."contribution_id" < "contribution"."id"
 
+// -- Total pot RECEIVED by a member for a given period
 Table payout {
   id serial [primary key]
   period_id integer
@@ -130,13 +143,13 @@ Table payout {
 Ref: "payout"."period_id" < "period"."id"
 Ref: "payout"."user_id" < "user"."id"
 
-// bid to get the amount fewer
+// -- Member bids to receive the payout BEFORE their turn
 Table auction {
   id serial [primary key]
   period_id integer
   user_id integer
   contribution_date date
-  ammount decimal
+  amount decimal
 
   modified_date datetime
   valid bool
@@ -171,9 +184,9 @@ get : "/userinfo" (params : user_token) -> {
 	circles {
 		circle_id,
 		name, 
-		contribution_ammount,
+		contribution_amount,
 		due_date,
-		payout_ammount
+		payout_amount
 	}
 }
 post :"/create_circle" (params : user_id, circle_name)
@@ -184,13 +197,13 @@ get : "/circle" (params : user_token, circle_id) -> {
 	circle_id,
 	circle_name,
   join_code,
-	contribution_ammount,
+	contribution_amount,
 	members {
 		logged : bool,
 		isadmin : bool,
     user_id,
 		member_name,
-		contribution_ammount,
+		contribution_amount,
 		due_date,
 		penalties {
 			paid
@@ -202,10 +215,10 @@ get : "/circle" (params : user_token, circle_id) -> {
 	}
 }
 post : "/contribute" (params : user_id, circle_id, period_date)
-post : "/auction" (params : user_id, circle_id, period_date, ammount)
+post : "/auction" (params : user_id, circle_id, period_date, amount)
 
 post : "/flaguser" (params : user_id, circle_id)
-post : "/change_settings" (params : circle_id, name, contribution_ammount, perdiod_duration, auction_mode)
+post : "/change_settings" (params : circle_id, name, contribution_amount, perdiod_duration, auction_mode)
 
 // ADMIN SYSTEM PAGE
 get : "/users" (params : user_token) -> {
@@ -219,13 +232,13 @@ get : "/circles" (params : user_token) -> {
 	circles {
     circle_name,
     join_code,
-    contribution_ammount,
+    contribution_amount,
     members {
       logged : bool,
       isadmin : bool,
       user_id,
       member_name,
-      contribution_ammount,
+      contribution_amount,
       due_date,
       penalties {
         paid

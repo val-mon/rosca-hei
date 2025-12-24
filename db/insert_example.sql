@@ -70,17 +70,17 @@ INSERT INTO circle_member (circle_id, user_id, is_admin) VALUES
 -- ============================================
 
 -- Famille Martin : 2 cycles (1 avec enchères, 1 sans)
-INSERT INTO cycle (circle_id, auction_mode) VALUES
-(1, false),  -- Cycle normal
-(1, true);   -- Cycle avec enchères
+INSERT INTO cycle (circle_id, auction_mode, contribution_amount) VALUES
+(1, false, 100.00),  -- Cycle normal, 100€/period
+(1, true, 150.00);   -- Cycle avec enchères, 150€/period
 
 -- Collègues Bureau : 1 cycle avec enchères
-INSERT INTO cycle (circle_id, auction_mode) VALUES
-(2, true);
+INSERT INTO cycle (circle_id, auction_mode, contribution_amount) VALUES
+(2, true, 200.00);   -- 200€/period
 
 -- Amis Université : 1 cycle normal
-INSERT INTO cycle (circle_id, auction_mode) VALUES
-(3, false);
+INSERT INTO cycle (circle_id, auction_mode, contribution_amount) VALUES
+(3, false, 50.00);   -- 50€/period
 
 -- ============================================
 -- PERIODS (périodes pour chaque cycle)

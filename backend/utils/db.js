@@ -127,6 +127,15 @@ class Sql {
     await this.pool.query(query, values);
   }
 
+  /*
+    e.g.
+      query('SELECT * FROM users WHERE id = $1', [1])
+      for custom queries like JOINs
+  */
+  async query(sql, values = []) {
+    return await this.pool.query(sql, values);
+  }
+
 }
 
 const db = new Sql();

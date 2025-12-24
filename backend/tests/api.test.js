@@ -76,15 +76,35 @@ describe('Auth API', () => {
 
 describe('Dashboard API', () => {
     // user info tests
-    test('GET /dashboard/userinfo - should return Alice user info', async () => {
+    test('GET /dashboard/userinfo - should return Alice user info with circles', async () => {
         const res = await request(app).get('/dashboard/userinfo?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
         expect(res.statusCode).toBe(200);
 
+        // verify main properties
         expect(res.body.user_token).toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
         expect(res.body.username).toBe('Alice');
         expect(res.body.email).toBe('alice@example.com');
         expect(res.body).toHaveProperty('id');
         expect(res.body).toHaveProperty('privacy_consent');
+
+        // verify circles
+        expect(res.body).toHaveProperty('circles');
+        expect(Array.isArray(res.body.circles)).toBe(true);
+        expect(res.body.circles.length).toBe(2);
+
+        // Famille Martin: Alice is admin, latest cycle contribution_amount=150, 3 members
+        const familleMartin = res.body.circles.find(c => c.name === 'Famille Martin');
+        expect(familleMartin.circle_id).toBe(1);
+        expect(parseFloat(familleMartin.contribution_amount)).toBe(150.00);
+        expect(parseFloat(familleMartin.payout_amount)).toBe(450.00);
+        expect(familleMartin).toHaveProperty('due_date');
+
+        // Collègues Bureau: Alice is member, cycle contribution_amount=200, 4 members
+        const colleguesBureau = res.body.circles.find(c => c.name === 'Collègues Bureau');
+        expect(colleguesBureau.circle_id).toBe(2);
+        expect(parseFloat(colleguesBureau.contribution_amount)).toBe(200.00);
+        expect(parseFloat(colleguesBureau.payout_amount)).toBe(800.00);
+        expect(colleguesBureau).toHaveProperty('due_date');
     });
 
     test('GET /dashboard/userinfo - missing token should return 400', async () => {
