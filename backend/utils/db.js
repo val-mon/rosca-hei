@@ -82,7 +82,6 @@ class Sql {
     return result.rows[0];
   }
 
-
   /*
     e.g.
       update('users', { name: 'Jane' }, { id: 1 })
@@ -135,7 +134,6 @@ class Sql {
   async query(sql, values = []) {
     return await this.pool.query(sql, values);
   }
-
 }
 
 const db = new Sql();

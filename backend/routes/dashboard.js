@@ -51,7 +51,6 @@ router.get('/userinfo', async (req, res, next) => {
     res.json(rep);
   }
   catch (err) {
-    console.error('ERROR in /dashboard/userinfo:', err.message);
     next(err);
   }
 });

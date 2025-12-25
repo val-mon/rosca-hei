@@ -14,11 +14,13 @@ afterAll(async () => {
 
 describe('Auth API', () => {
     // create tests
-    // test('GET /auth/create - should create new user', async () => {
-    //     const res = await request(app).get('/auth/create?email=newuser@example.com&username=NewUser&consent=true');
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body).toHaveProperty('user_token');
-    // });
+    test('GET /auth/create - should create new user', async () => {
+        const res = await request(app).get(`/auth/create?email=newuser@example.com&username=NewUser&consent=true`);
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('user_token');
+
+        await db.delete('"user"', { username : 'NewUser' })
+    });
 
     test('GET /auth/create - missing params should return 400', async () => {
         const res = await request(app).get('/auth/create?email=test@example.com');
@@ -33,6 +35,7 @@ describe('Auth API', () => {
     //         .send({ email: 'alice@example.com' });
     //     expect(res.statusCode).toBe(200);
     //     expect(res.body.success).toBe(true);
+    //     expect(res.body.message).toBe('Code sent');
     // });
 
     test('POST /auth/sendcode - missing email should return 400', async () => {

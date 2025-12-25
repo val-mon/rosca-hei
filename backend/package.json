@@ -15,7 +15,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "resend": "^6.6.0"
   },
   "devDependencies": {
     "jest": "^30.2.0",

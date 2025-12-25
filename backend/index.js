@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -7,10 +9,7 @@ const circleRoutes = require('./routes/circle');
 const dashboardRoutes = require('./routes/dashboard');
 const db = require('./utils/db');
 
-require('dotenv').config();
-
 const app = express();
-
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
