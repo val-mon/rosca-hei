@@ -23,19 +23,23 @@ router.get('/userinfo', async (req, res, next) => {
           c.id as circle_id,
           c.name,
           (SELECT cy.contribution_amount FROM cycle cy WHERE cy.circle_id = c.id ORDER BY cy.id DESC LIMIT 1) as contribution_amount,
-          (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id) as member_count
+          (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id) as member_count,
+          (SELECT p.due_date FROM period p
+           JOIN cycle cy ON p.cycle_id = cy.id
+           WHERE cy.circle_id = c.id
+           ORDER BY p.due_date DESC LIMIT 1) as due_date
         FROM circle c
         JOIN circle_member cm ON c.id = cm.circle_id
         WHERE cm.user_id = $1`,
       [user_id]
     );
 
-    // calculate payout_amount for each circle (due_date is null for now - needs due_date field in period table)
+    // calculate payout_amount for each circle
     const circles = circlesResult.rows.map(circle => ({
       circle_id: circle.circle_id,
       name: circle.name,
       contribution_amount: circle.contribution_amount,
-      due_date: null,
+      due_date: circle.due_date,
       payout_amount: circle.contribution_amount * circle.member_count
     }));
 

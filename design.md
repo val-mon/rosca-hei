@@ -92,6 +92,7 @@ Ref: "cycle"."circle_id" < "circle"."id"
 Table period {
   id serial [primary key]
   cycle_id integer
+  due_date date
 
   modified_date datetime
   valid bool

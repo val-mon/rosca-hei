@@ -78,20 +78,27 @@ INSERT INTO cycle (circle_id, auction_mode, contribution_amount) VALUES
 -- ============================================
 
 -- Cycle 1 (Famille Martin, normal) : 3 périodes
-INSERT INTO period (cycle_id) VALUES
-(1), (1), (1);
+INSERT INTO period (cycle_id, due_date) VALUES
+(1, '2024-03-15'),
+(1, '2024-04-15'),
+(1, '2024-05-15');
 
 -- Cycle 2 (Famille Martin, enchères) : 2 périodes
-INSERT INTO period (cycle_id) VALUES
-(2), (2);
+INSERT INTO period (cycle_id, due_date) VALUES
+(2, '2024-05-01'),
+(2, '2024-06-01');
 
 -- Cycle 3 (Collègues Bureau) : 4 périodes
-INSERT INTO period (cycle_id) VALUES
-(3), (3), (3), (3);
+INSERT INTO period (cycle_id, due_date) VALUES
+(3, '2024-03-15'),
+(3, '2024-04-15'),
+(3, '2024-05-15'),
+(3, '2024-06-15');
 
 -- Cycle 4 (Amis Université) : 2 périodes
-INSERT INTO period (cycle_id) VALUES
-(4), (4);
+INSERT INTO period (cycle_id, due_date) VALUES
+(4, '2024-03-01'),
+(4, '2024-04-01');
 
 -- ============================================
 -- CONTRIBUTIONS (paiements)
