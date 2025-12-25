@@ -47,11 +47,35 @@ describe('Auth API', () => {
     });
 
     // login tests
-    // test('GET /auth/login - should login existing user Alice', async () => {
-    //     const res = await request(app).get('/auth/login?email=alice@example.com&onetime_code=123456');
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body).toHaveProperty('user_token');
-    // });
+    test('GET /auth/login - should login existing user Alice and create new token', async () => {
+        // create a valid code for Alice
+        const users = await db.select('"user"', { email: 'alice@example.com' }, 'id');
+        const user_id = users[0].id;
+        const validCode = 123456;
+        const validExpiration = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+        await db.insert('authentification', {
+            user_id: user_id,
+            code: validCode,
+            expiration: validExpiration
+        });
+
+        // get existing tokens before login
+        const tokensBefore = await db.select('user_token', { user_id: user_id }, 'token');
+        const existingTokens = tokensBefore.map(t => t.token);
+
+        const res = await request(app).get(`/auth/login?email=alice@example.com&onetime_code=${validCode}`);
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('user_token');
+
+        // verify a new token was created
+        const newToken = res.body.user_token;
+        expect(existingTokens).not.toContain(newToken);
+
+        // clean up
+        await db.delete('authentification', { user_id: user_id, code: validCode });
+        await db.delete('user_token', { token: newToken });
+    });
 
     test('GET /auth/login - missing params should return 400', async () => {
         const res = await request(app).get('/auth/login?email=alice@example.com');
@@ -59,14 +83,57 @@ describe('Auth API', () => {
         expect(res.body.error).toBe('Email or Onetime_code invalid');
     });
 
+    test('GET /auth/login - non-existent user should return 401', async () => {
+        const res = await request(app).get('/auth/login?email=nonexistent@example.com&onetime_code=123456');
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBe('User not found');
+    });
+
+    test('GET /auth/login - invalid code should return 401', async () => {
+        const res = await request(app).get('/auth/login?email=alice@example.com&onetime_code=999999');
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBe('Invalid code');
+    });
+
+    test('GET /auth/login - expired code should return 401', async () => {
+        // create an expired code for Alice
+        const users = await db.select('"user"', { email: 'alice@example.com' }, 'id');
+        const user_id = users[0].id;
+        const expiredCode = 555555;
+        const expiredDate = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago
+
+        await db.insert('authentification', {
+            user_id: user_id,
+            code: expiredCode,
+            expiration: expiredDate
+        });
+
+        const res = await request(app).get(`/auth/login?email=alice@example.com&onetime_code=${expiredCode}`);
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBe('Code expired');
+
+        // clean up
+        await db.delete('authentification', { user_id: user_id, code: expiredCode });
+    });
+
     // logout tests
-    // test('POST /auth/logout - should logout user with Alice token', async () => {
-    //     const res = await request(app)
-    //         .post('/auth/logout')
-    //         .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' });
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body.success).toBe(true);
-    // });
+    test('POST /auth/logout - should logout user successfully', async () => {
+        // create a temporary token for testing
+        const users = await db.select('"user"', { email: 'alice@example.com' }, 'id');
+        const user_id = users[0].id;
+        const testToken = await db.insert('user_token', { user_id: user_id });
+
+        const res = await request(app)
+            .post('/auth/logout')
+            .send({ user_token: testToken.token });
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.message).toBe('Logged out');
+
+        // verify token was deleted
+        const tokenCheck = await db.select('user_token', { token: testToken.token }, 'token');
+        expect(tokenCheck.length).toBe(0);
+    });
 
     test('POST /auth/logout - missing token should return 400', async () => {
         const res = await request(app)

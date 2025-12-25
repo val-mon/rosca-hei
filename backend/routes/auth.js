@@ -114,11 +114,31 @@ router.get('/login', async (req, res, next) => {
       return res.status(400).json({ error: 'Email or Onetime_code invalid' });
     }
 
-    // TODO: Verify code and return user_token
+    // check if user exists and get user_id
+    const users = await db.select('"user"', { email: email }, 'id');
+    if (!users || users.length === 0) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    const user_id = users[0].id;
 
-    res.json({ user_token: 'placeholder_token' });
+    // verify the code matches
+    const authResult = await db.select('authentification', { user_id: user_id, code: parseInt(onetime_code) }, 'expiration');
+    if (!authResult || authResult.length === 0) {
+      return res.status(401).json({ error: 'Invalid code' });
+    }
+
+    // check if code has expired
+    if (new Date(authResult[0].expiration) < new Date()) {
+      return res.status(401).json({ error: 'Code expired' });
+    }
+
+    // create new user token (allows multiple sessions)
+    const user_token = await db.insert('user_token', { user_id: user_id });
+
+    res.json({ user_token: user_token.token });
   }
   catch (err) {
+    console.error(`ERROR [${req.method} ${req.originalUrl}]:`, err.message);
     next(err);
   }
 });
@@ -130,7 +150,7 @@ router.post('/logout', async (req, res, next) => {
       return res.status(400).json({ error: 'User_token invalid' });
     }
 
-    // TODO: Invalidate user_token
+    await db.delete('user_token', { token: user_token });
 
     res.json({ success: true, message: 'Logged out' });
   }

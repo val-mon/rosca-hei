@@ -14,15 +14,6 @@ INSERT INTO "user" (email, username, privacy_consent, created_at) VALUES
 ('eve@example.com', 'Eve', true, '2024-02-05 16:00:00');
 
 -- ============================================
--- AUTHENTIFICATION (codes de vérification)
--- ============================================
-
-INSERT INTO authentification (user_id, code, expiration) VALUES
-(1, 123456, NOW() + INTERVAL '15 minutes'),
-(2, 789012, NOW() + INTERVAL '15 minutes'),
-(3, 345678, NOW() + INTERVAL '15 minutes');
-
--- ============================================
 -- USER TOKENS (tokens de session)
 -- ============================================
 
