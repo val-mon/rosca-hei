@@ -23,7 +23,6 @@
 
 # RDB
 Note : to visualize this diagram, paste this code on [dbdiagram.io](https://dbdiagram.io)
-
 ``` sql
 // #region USER
 Table user {
@@ -222,28 +221,33 @@ post : "/flaguser" (params : user_id, circle_id)
 post : "/change_settings" (params : circle_id, name, contribution_amount, perdiod_duration, auction_mode)
 
 // ADMIN SYSTEM PAGE
-get : "/users" (params : user_token) -> {
-  user_token,
-	name,
-	email,
-	consent,
+get : "/globalstats" (params : user_token) -> {
+  total_users,
+  total_circles,
+  funds_circulating,
+  avg_circle_size
 }
+
+get : "/users" (params : user_token) -> {
+	users{
+    name,
+	  email,
+	  last_login,
+    nbr_circles,
+    flaged
+  }
+}
+post : "/deleteuser" (params : user_token, email) // just toggle the valid to false
 
 get : "/circles" (params : user_token) -> {
 	circles {
     circle_name,
-    join_code,
-    contribution_amount,
-    members {
-      logged : bool,
-      isadmin : bool,
-      user_id,
-      member_name,
-      contribution_amount,
-      due_date,
-      penalties {
-        paid
-      }
-	}	
+    creator,
+    nbr_members,
+    progress,
+    total_funds,
+    mode // status
+  }
 }
+post : "/deletecircle" (params : user_token, circle_name) // also just toggle the valid to false
 ```

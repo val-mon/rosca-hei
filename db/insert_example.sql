@@ -3,7 +3,7 @@
 -- ============================================
 
 -- ============================================
--- USERS (5 utilisateurs)
+-- USERS (6 utilisateurs)
 -- ============================================
 
 INSERT INTO "user" (email, username, privacy_consent, created_at) VALUES
@@ -11,7 +11,8 @@ INSERT INTO "user" (email, username, privacy_consent, created_at) VALUES
 ('bob@example.com', 'Bob', true, '2024-01-16 11:30:00'),
 ('charlie@example.com', 'Charlie', true, '2024-01-17 14:00:00'),
 ('diana@example.com', 'Diana', false, '2024-02-01 09:00:00'),
-('eve@example.com', 'Eve', true, '2024-02-05 16:00:00');
+('eve@example.com', 'Eve', true, '2024-02-05 16:00:00'),
+('admin@rosca-hei.com', 'Admin', true, '2024-01-01 08:00:00');
 
 -- ============================================
 -- USER TOKENS (tokens de session)
@@ -22,7 +23,8 @@ INSERT INTO user_token (user_id, token) VALUES
 (2, 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22'),
 (3, 'c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33'),
 (4, 'd3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44'),
-(5, 'e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a55');
+(5, 'e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a55'),
+(6, 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00');
 
 -- ============================================
 -- CIRCLES (3 groupes)

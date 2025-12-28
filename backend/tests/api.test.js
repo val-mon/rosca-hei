@@ -333,3 +333,212 @@ describe('Circle API', () => {
         expect(res.body.error).toBe('User_token or Circle_id invalid');
     });
 });
+
+describe('Admin API', () => {
+    // globalstats tests
+    test('GET /admin/globalstats - should return global statistics', async () => {
+        const res = await request(app).get('/admin/globalstats?user_token=f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00');
+        expect(res.statusCode).toBe(200);
+
+        // verify values from insert_example.sql
+        expect(res.body.total_users).toBe(6); // Admin, Alice, Bob, Charlie, Diana, Eve
+        expect(res.body.total_circles).toBe(3); // Famille Martin, Collègues Bureau, Amis Université
+
+        // funds = cycle1(100*3) + cycle2(150*3) + cycle3(200*4) + cycle4(50*3) = 300+450+800+150 = 1700
+        expect(res.body.funds_circulating).toBe(1700.00);
+
+        // avg circle size = (3 + 4 + 3) / 3 = 3.333...
+        expect(res.body.avg_circle_size).toBeCloseTo(10/3);
+    });
+
+    test('GET /admin/globalstats - missing token should return 400', async () => {
+        const res = await request(app).get('/admin/globalstats');
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBe('User_token invalid');
+    });
+
+    test('GET /admin/globalstats - non-admin user should return 403', async () => {
+        const res = await request(app).get('/admin/globalstats?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Forbidden: Admin access required');
+    });
+
+    // users tests
+    test('GET /admin/users - should return list of users', async () => {
+        const res = await request(app).get('/admin/users?user_token=f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00');
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('users');
+        expect(Array.isArray(res.body.users)).toBe(true);
+
+        // verify we have 6 users (Alice, Bob, Charlie, Diana, Eve, Admin)
+        expect(res.body.users.length).toBe(6);
+
+        // verify Alice data
+        const alice = res.body.users.find(u => u.email === 'alice@example.com');
+        expect(alice.name).toBe('Alice');
+        expect(alice.nbr_circles).toBe(2); // Famille Martin, Collègues Bureau
+        expect(alice.flaged).toBe(false); // no unwaived penalties
+
+        // verify Charlie data (has unwaived penalty)
+        const charlie = res.body.users.find(u => u.email === 'charlie@example.com');
+        expect(charlie.name).toBe('Charlie');
+        expect(charlie.nbr_circles).toBe(2); // Famille Martin, Amis Université
+        expect(charlie.flaged).toBe(true); // has unwaived penalty
+
+        // verify Admin data (not in any circles)
+        const admin = res.body.users.find(u => u.email === 'admin@rosca-hei.com');
+        expect(admin.name).toBe('Admin');
+        expect(admin.nbr_circles).toBe(0); // not in any circle
+        expect(admin.flaged).toBe(false); // no penalties
+
+        // verify all users have required properties
+        res.body.users.forEach(user => {
+            expect(user).toHaveProperty('name');
+            expect(user).toHaveProperty('email');
+            expect(user).toHaveProperty('last_login');
+            expect(user).toHaveProperty('nbr_circles');
+            expect(user).toHaveProperty('flaged');
+        });
+    });
+
+    test('GET /admin/users - missing token should return 400', async () => {
+        const res = await request(app).get('/admin/users');
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBe('User_token invalid');
+    });
+
+    test('GET /admin/users - non-admin user should return 403', async () => {
+        const res = await request(app).get('/admin/users?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Forbidden: Admin access required');
+    });
+
+    // deleteuser tests
+    test('POST /admin/deleteuser - should mark user as deleted', async () => {
+        // create a temporary user for testing
+        await request(app).get('/auth/create?email=tempuser@example.com&username=TempUser&consent=true');
+        const users = await db.select('"user"', { email: 'tempuser@example.com' }, 'id');
+        const user_id = users[0].id;
+
+        const res = await request(app)
+            .post('/admin/deleteuser')
+            .send({ user_token: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00', email: 'tempuser@example.com' });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.message).toBe('User deleted');
+
+        // verify user is marked as invalid
+        const deletedUser = await db.select('"user"', { id: user_id }, 'valid');
+        expect(deletedUser[0].valid).toBe(false);
+
+        // clean up
+        await db.delete('"user"', { id: user_id });
+    });
+
+    test('POST /admin/deleteuser - missing params should return 400', async () => {
+        const res = await request(app)
+            .post('/admin/deleteuser')
+            .send({ user_token: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00' });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBe('User_token or Email invalid');
+    });
+
+    test('POST /admin/deleteuser - non-admin user should return 403', async () => {
+        const res = await request(app)
+            .post('/admin/deleteuser')
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'bob@example.com' });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Forbidden: Admin access required');
+    });
+
+    // circles tests
+    test('GET /admin/circles - should return list of circles', async () => {
+        const res = await request(app).get('/admin/circles?user_token=f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00');
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('circles');
+        expect(Array.isArray(res.body.circles)).toBe(true);
+
+        // verify we have 3 circles (Famille Martin, Collègues Bureau, Amis Université)
+        expect(res.body.circles.length).toBe(3);
+
+        // verify Famille Martin data
+        const familleMartin = res.body.circles.find(c => c.circle_name === 'Famille Martin');
+        expect(familleMartin).toBeDefined();
+        expect(familleMartin.creator).toBe('Alice');
+        expect(familleMartin.nbr_members).toBe(3); // Alice, Bob, Charlie
+        expect(familleMartin.progress).toBe(5); // 3 periods (cycle1) + 2 periods (cycle2)
+        expect(familleMartin.total_funds).toBe(750); // cycle1 (100*3) + cycle2 (150*3)
+        expect(familleMartin.mode).toBe('auction'); // last cycle (cycle2) has auction_mode=true
+
+        // verify Collègues Bureau data
+        const collegues = res.body.circles.find(c => c.circle_name === 'Collègues Bureau');
+        expect(collegues).toBeDefined();
+        expect(collegues.creator).toBe('Bob');
+        expect(collegues.nbr_members).toBe(4); // Bob, Alice, Diana, Eve
+        expect(collegues.progress).toBe(4); // 4 periods
+        expect(collegues.total_funds).toBe(800); // cycle3 (200*4)
+        expect(collegues.mode).toBe('auction'); // cycle3 has auction_mode=true
+
+        // verify Amis Université data
+        const amisUni = res.body.circles.find(c => c.circle_name === 'Amis Université');
+        expect(amisUni).toBeDefined();
+        expect(amisUni.creator).toBe('Charlie');
+        expect(amisUni.nbr_members).toBe(3); // Charlie, Diana, Eve
+        expect(amisUni.progress).toBe(2); // 2 periods
+        expect(amisUni.total_funds).toBe(150); // cycle4 (50*3)
+        expect(amisUni.mode).toBe('standard'); // cycle4 has auction_mode=false
+    });
+
+    test('GET /admin/circles - missing token should return 400', async () => {
+        const res = await request(app).get('/admin/circles');
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBe('User_token invalid');
+    });
+
+    test('GET /admin/circles - non-admin user should return 403', async () => {
+        const res = await request(app).get('/admin/circles?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Forbidden: Admin access required');
+    });
+
+    // deletecircle tests
+    test('POST /admin/deletecircle - should mark circle as deleted', async () => {
+        // create a temporary circle for testing
+        const newCircle = await request(app)
+            .post('/dashboard/create_circle')
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_name: 'Temp Circle' });
+        const circle_id = newCircle.body.circle_id;
+
+        const res = await request(app)
+            .post('/admin/deletecircle')
+            .send({ user_token: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00', circle_name: 'Temp Circle' });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.message).toBe('Circle deleted');
+
+        // verify circle is marked as invalid
+        const deletedCircle = await db.select('circle', { name: 'Temp Circle' }, 'valid');
+        expect(deletedCircle[0].valid).toBe(false);
+
+        // clean up
+        await db.delete('circle', { id: circle_id });
+    });
+
+    test('POST /admin/deletecircle - missing params should return 400', async () => {
+        const res = await request(app)
+            .post('/admin/deletecircle')
+            .send({ user_token: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00' });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBe('User_token or Circle_name invalid');
+    });
+
+    test('POST /admin/deletecircle - non-admin user should return 403', async () => {
+        const res = await request(app)
+            .post('/admin/deletecircle')
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_name: 'Famille Martin' });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Forbidden: Admin access required');
+    });
+});
