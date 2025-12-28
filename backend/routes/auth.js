@@ -30,7 +30,10 @@ router.post('/sendcode', async (req, res, next) => {
 
     const expirationResult = await db.query(`SELECT CURRENT_TIMESTAMP + INTERVAL '5 minutes' as expiration;`);
     const expiration = expirationResult.rows[0].expiration;
-    const users = await db.select('"user"', { email: email }, 'id');
+    const users = await db.select('"user"', { email: email, valid: true }, 'id');
+    if (!users || users.length === 0) {
+      return res.status(401).json({ error: 'User not found or inactive' });
+    }
     const user_id = users[0].id;
     await db.insert("authentification", { user_id: user_id, code: code, expiration: expiration })
 
@@ -114,10 +117,10 @@ router.get('/login', async (req, res, next) => {
       return res.status(400).json({ error: 'Email or Onetime_code invalid' });
     }
 
-    // check if user exists and get user_id
-    const users = await db.select('"user"', { email: email }, 'id');
+    // check if user exists and is valid
+    const users = await db.select('"user"', { email: email, valid: true }, 'id');
     if (!users || users.length === 0) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: 'User not found or inactive' });
     }
     const user_id = users[0].id;
 

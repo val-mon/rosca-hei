@@ -13,8 +13,11 @@ router.get('/userinfo', async (req, res, next) => {
     const tokenResult = await db.select('user_token', { token: user_token }, 'user_id');
     const user_id = tokenResult[0].user_id;
 
-    // get the user infos from the user_id
-    const user_info = await db.select('"user"', { id: user_id }, 'id, username, email, privacy_consent');
+    // get the user infos from the user_id and verify user is valid
+    const user_info = await db.select('"user"', { id: user_id, valid: true }, 'id, username, email, privacy_consent');
+    if (!user_info || user_info.length === 0) {
+      return res.status(401).json({ error: 'User not found or inactive' });
+    }
     const userData = user_info[0];
 
     // get the circles the user belongs to
@@ -70,6 +73,12 @@ router.post('/create_circle', async (req, res, next) => {
     const tokenResult = await db.select('user_token', { token: user_token }, 'user_id');
     const user_id = tokenResult[0].user_id;
 
+    // verify user is valid
+    const userCheck = await db.select('"user"', { id: user_id, valid: true }, 'id');
+    if (!userCheck || userCheck.length === 0) {
+      return res.status(401).json({ error: 'User not found or inactive' });
+    }
+
     // generate unique join_code
     const join_code = Math.random().toString(36).substring(2, 10).toUpperCase();
 
@@ -96,6 +105,12 @@ router.post('/join_circle', async (req, res, next) => {
     // get user_id from token
     const tokenResult = await db.select('user_token', { token: user_token }, 'user_id');
     const user_id = tokenResult[0].user_id;
+
+    // verify user is valid
+    const userCheck = await db.select('"user"', { id: user_id, valid: true }, 'id');
+    if (!userCheck || userCheck.length === 0) {
+      return res.status(401).json({ error: 'User not found or inactive' });
+    }
 
     // find circle by join_code
     const circleResult = await db.select('circle', { join_code }, 'id');

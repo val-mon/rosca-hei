@@ -86,7 +86,7 @@ describe('Auth API', () => {
     test('GET /auth/login - non-existent user should return 401', async () => {
         const res = await request(app).get('/auth/login?email=nonexistent@example.com&onetime_code=123456');
         expect(res.statusCode).toBe(401);
-        expect(res.body.error).toBe('User not found');
+        expect(res.body.error).toBe('User not found or inactive');
     });
 
     test('GET /auth/login - invalid code should return 401', async () => {
