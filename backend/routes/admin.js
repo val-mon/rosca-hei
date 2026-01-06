@@ -135,7 +135,6 @@ router.post('/deleteuser', async (req, res, next) => {
     res.json({ success: true, message: 'User deleted' });
   }
   catch (err) {
-    console.error(`ERROR [${req.method} ${req.originalUrl}]:`, err.message);
     next(err);
   }
 });

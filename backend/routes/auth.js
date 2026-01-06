@@ -21,7 +21,7 @@ router.get('/create', async (req, res, next) => {
 
 router.post('/sendcode', async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { email } = req.query;
     if (!email) {
       return res.status(400).json({ error: 'Email invalid' });
     }
@@ -141,7 +141,6 @@ router.get('/login', async (req, res, next) => {
     res.json({ user_token: user_token.token });
   }
   catch (err) {
-    console.error(`ERROR [${req.method} ${req.originalUrl}]:`, err.message);
     next(err);
   }
 });
