@@ -1,10 +1,10 @@
 // lib/api.ts
 
-import { 
-  LoginResponse, 
-  SignupResponse, 
-  LogoutResponse, 
-  Circle, 
+import {
+  LoginResponse,
+  SignupResponse,
+  LogoutResponse,
+  Circle,
   CircleDetails,
   PaymentResponse,
   KickMemberResponse,
@@ -12,9 +12,9 @@ import {
   UpdateCircleResponse,
   PlaceBidResponse
 } from './types';
-import { 
-  AdminStats, 
-  AdminUser, 
+import {
+  AdminStats,
+  AdminUser,
   AdminCircle,
   SuspendUserResponse,
   DeleteUserResponse,
@@ -24,319 +24,363 @@ import {
 import { mockUser, mockCircles, mockCircleDetails } from '@/data/mockData';
 import { mockAdminStats, mockAdminUsers, mockAdminCircles } from '@/data/adminMockData';
 
+const USE_MOCK_DATA = true;
+const BASE_URL = 'http://localhost:5431'
+
 const api = {
-  login: async (email: string, password: string): Promise<LoginResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password })
-    // });
-    // return response.json();
-    
-    console.log('Login:', { email, password });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, user: mockUser };
-  },
-  
-  signup: async (name: string, email: string, password: string): Promise<SignupResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/auth/signup', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ name, email, password })
-    // });
-    // return response.json();
-    
-    console.log('Signup:', { name, email, password });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, user: mockUser };
-  },
-  
-  logout: async (): Promise<LogoutResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/auth/logout', {
-    //   method: 'POST'
-    // });
-    // return response.json();
-    
-    console.log('Logout');
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    return { success: true };
-  },
-  
-  getCircles: async (): Promise<Circle[]> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/circles');
-    // return response.json();
-    
-    console.log('Fetching circles');
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return mockCircles;
+  // CONNECTION
+  logout: async (userToken: string): Promise<LogoutResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Logout');
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { success: true };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/auth/logout`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken })
+        }
+      );
+      return res.json();
+    }
   },
 
-  getUserActiveAuctions: async (): Promise<any[]> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/user/active-auctions');
-    // return response.json();
-    
-    console.log('Fetching user active auctions');
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Mock active auctions for circles 1 and 3
-    return [
-      {
-        circleId: 1,
-        circleName: "Family Circle",
-        periodId: 3,
-        payoutAmount: 4000,
-        userBidAmount: 3750,
-        currentHighestBid: 3750,
-        currentWinner: "John Doe",
-        isWinning: true,
-        endDate: "2024-12-14",
-        timeRemaining: "18h 32m"
-      },
-      {
-        circleId: 3,
-        circleName: "Work Colleagues",
-        periodId: 5,
-        payoutAmount: 2000,
-        userBidAmount: 1800,
-        currentHighestBid: 1850,
-        currentWinner: "Joey Tribbiani",
-        isWinning: false,
-        endDate: "2024-12-29",
-        timeRemaining: "10d 14h"
-      }
-    ];
-  },
-  
-  getCircleDetails: async (circleId: number): Promise<CircleDetails> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/circles/${circleId}`);
-    // return response.json();
-    
-    console.log('Fetching circle details:', circleId);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return mockCircleDetails[circleId];
-  },
-  
-  makePayment: async (circleId: number, amount: number): Promise<PaymentResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/payments', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ circleId, amount })
-    // });
-    // return response.json();
-    
-    console.log('Making payment:', { circleId, amount });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    return { success: true, message: 'Payment successful' };
+  login: async (email: string, onetimeCode: string): Promise<LoginResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Login:', { email, onetimeCode });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, user: mockUser };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/auth/login?email=${encodeURIComponent(email)}&onetime_code=${encodeURIComponent(onetimeCode)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      return res.json();
+    }
   },
 
-  kickMember: async (circleId: number, memberId: number): Promise<KickMemberResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/circles/${circleId}/members/${memberId}`, {
-    //   method: 'DELETE'
-    // });
-    // return response.json();
-    
-    console.log('Kicking member:', { circleId, memberId });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'Member removed from circle' };
+  sendCode: async (email: string): Promise<{ success: boolean; message: string }> => {
+    if (USE_MOCK_DATA) {
+      console.log('Sending code to:', email);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, message: 'Code sent' };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/auth/sendcode?email=${encodeURIComponent(email)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      return res.json();
+    }
   },
 
-  flagMember: async (circleId: number, memberId: number, reason: string): Promise<FlagMemberResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/circles/${circleId}/members/${memberId}/flag`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ reason })
-    // });
-    // return response.json();
-    
-    console.log('Flagging member:', { circleId, memberId, reason });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'Member flagged successfully' };
+  signup: async (name: string, email: string, consent: boolean): Promise<SignupResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Signup:', { name, email, consent });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, user: mockUser };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/auth/create?email=${encodeURIComponent(email)}&username=${encodeURIComponent(name)}&consent=${consent}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      return res.json();
+    }
   },
 
-  unflagMember: async (circleId: number, memberId: number): Promise<FlagMemberResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/circles/${circleId}/members/${memberId}/unflag`, {
-    //   method: 'POST'
-    // });
-    // return response.json();
-    
-    console.log('Unflagging member:', { circleId, memberId });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'Member unflagged successfully' };
+  // DASHBOARD
+  getUserInfo: async (userToken: string): Promise<any> => {
+    if (USE_MOCK_DATA) {
+      console.log('Fetching user info');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return {
+        user_token: userToken,
+        id: 1,
+        username: mockUser.name,
+        email: mockUser.email,
+        privacy_consent: true,
+        circles: mockCircles
+      };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/dashboard/userinfo?user_token=${encodeURIComponent(userToken)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      return res.json();
+    }
   },
 
-  updateCircleName: async (circleId: number, newName: string): Promise<UpdateCircleResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/circles/${circleId}`, {
-    //   method: 'PATCH',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ name: newName })
-    // });
-    // return response.json();
-    
-    console.log('Updating circle name:', { circleId, newName });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'Circle name updated successfully' };
+  getCircles: async (userToken: string): Promise<Circle[]> => {
+    if (USE_MOCK_DATA) {
+      console.log('Fetching circles');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockCircles;
+    } else {
+      const userInfo = await api.getUserInfo(userToken);
+      return userInfo.circles;
+    }
   },
 
-  placeBid: async (circleId: number, periodId: number, bidAmount: number): Promise<PlaceBidResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/circles/${circleId}/periods/${periodId}/bid`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ bidAmount })
-    // });
-    // return response.json();
-    
-    console.log('Placing bid:', { circleId, periodId, bidAmount });
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Simulate checking if bid is winning
-    const isWinning = Math.random() > 0.5;
-    
-    return { 
-      success: true, 
-      message: isWinning ? 'You are now the highest bidder!' : 'Bid placed successfully',
-      isWinning 
-    };
+  createCircle: async (userToken: string, circleName: string): Promise<{ success: boolean; circle_id: number; join_code: string }> => {
+    if (USE_MOCK_DATA) {
+      console.log('Creating circle:', circleName);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, circle_id: 99, join_code: 'MOCK123' };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/dashboard/create_circle`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, circle_name: circleName })
+        }
+      );
+      return res.json();
+    }
   },
 
-  // Admin API calls
-  getAdminStats: async (): Promise<AdminStats> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/admin/stats');
-    // return response.json();
-    
-    console.log('Fetching admin stats');
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return mockAdminStats;
+  joinCircle: async (userToken: string, joinCode: string): Promise<{ success: boolean; circle_id: number }> => {
+    if (USE_MOCK_DATA) {
+      console.log('Joining circle with code:', joinCode);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, circle_id: 99 };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/dashboard/join_circle`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, join_code: joinCode })
+        }
+      );
+      return res.json();
+    }
   },
 
-  getAllUsers: async (): Promise<AdminUser[]> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/admin/users');
-    // return response.json();
-    
-    console.log('Fetching all users');
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return mockAdminUsers;
+  getUserActiveAuctions: async (userToken: string): Promise<any[]> => {
+    if (USE_MOCK_DATA) {
+      console.log('Fetching user active auctions');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return [
+        {
+          circleId: 1,
+          circleName: "Family Circle",
+          periodId: 3,
+          payoutAmount: 4000,
+          userBidAmount: 3750,
+          currentHighestBid: 3750,
+          currentWinner: "John Doe",
+          isWinning: true,
+          endDate: "2024-12-14",
+          timeRemaining: "18h 32m"
+        }
+      ];
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/dashboard/useractiveauctions?user_token=${encodeURIComponent(userToken)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      const data = await res.json();
+      return data.auctions;
+    }
   },
 
-  getAllCircles: async (): Promise<AdminCircle[]> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch('/api/admin/circles');
-    // return response.json();
-    
-    console.log('Fetching all circles');
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return mockAdminCircles;
+  // CIRCLE PAGE
+  getCircleDetails: async (userToken: string, circleId: number): Promise<CircleDetails> => {
+    if (USE_MOCK_DATA) {
+      console.log('Fetching circle details:', circleId);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockCircleDetails[circleId];
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/circle/circle?user_token=${encodeURIComponent(userToken)}&circle_id=${circleId}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      return res.json();
+    }
   },
 
-  suspendUser: async (userId: number, reason: string): Promise<SuspendUserResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/admin/users/${userId}/suspend`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ reason })
-    // });
-    // return response.json();
-    
-    console.log('Suspending user:', { userId, reason });
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'User suspended successfully' };
+  makePayment: async (userToken: string, circleId: number, periodDate: string): Promise<PaymentResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Making payment:', { circleId, periodDate });
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return { success: true, message: 'Payment successful' };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/circle/contribute`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId, period_date: periodDate })
+        }
+      );
+      return res.json();
+    }
   },
 
-  unsuspendUser: async (userId: number): Promise<SuspendUserResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/admin/users/${userId}/unsuspend`, {
-    //   method: 'POST'
-    // });
-    // return response.json();
-    
-    console.log('Unsuspending user:', userId);
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'User unsuspended successfully' };
+  kickMember: async (userToken: string, circleId: number): Promise<KickMemberResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Kicking member:', { circleId });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, message: 'Member removed from circle' };
+    } else {
+
+      // TODO: Implement when backend route exists (currently no kick member route)
+
+      console.log('Kicking member:', { circleId });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, message: 'Member removed from circle' };
+    }
   },
 
-  deleteUser: async (userId: number): Promise<DeleteUserResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/admin/users/${userId}`, {
-    //   method: 'DELETE'
-    // });
-    // return response.json();
-    
-    console.log('Deleting user:', userId);
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'User deleted successfully' };
+  updateCircleName: async (userToken: string, circleId: number, newName: string): Promise<UpdateCircleResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Updating circle name:', { circleId, newName });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, message: 'Circle name updated successfully' };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/circle/change_settings`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId })
+        }
+      );
+      return res.json();
+    }
   },
 
-  deleteCircle: async (circleId: number): Promise<DeleteCircleResponse> => {
-    // TODO: Implement backend call
-    // Example: const response = await fetch(`/api/admin/circles/${circleId}`, {
-    //   method: 'DELETE'
-    // });
-    // return response.json();
-    
-    console.log('Deleting circle:', circleId);
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return { success: true, message: 'Circle deleted successfully' };
+  placeBid: async (userToken: string, circleId: number, periodDate: string, amount: number): Promise<PlaceBidResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Placing bid:', { circleId, periodDate, amount });
+      await new Promise(resolve => setTimeout(resolve, 800));
+      const isWinning = Math.random() > 0.5;
+      return {
+        success: true,
+        message: isWinning ? 'You are now the highest bidder!' : 'Bid placed successfully',
+        isWinning
+      };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/circle/auction`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId, period_date: periodDate, ammount: amount })
+        }
+      );
+      return res.json();
+    }
+  },
+
+  // ADMIN SYSTEM PAGE
+  getAdminStats: async (userToken: string): Promise<AdminStats> => {
+    if (USE_MOCK_DATA) {
+      console.log('Fetching admin stats');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockAdminStats;
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/admin/globalstats?user_token=${encodeURIComponent(userToken)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      return res.json();
+    }
+  },
+
+  getAllUsers: async (userToken: string): Promise<AdminUser[]> => {
+    if (USE_MOCK_DATA) {
+      console.log('Fetching all users');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockAdminUsers;
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/admin/users?user_token=${encodeURIComponent(userToken)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      const data = await res.json();
+      return data.users;
+    }
+  },
+
+  getAllCircles: async (userToken: string): Promise<AdminCircle[]> => {
+    if (USE_MOCK_DATA) {
+      console.log('Fetching all circles');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockAdminCircles;
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/admin/circles?user_token=${encodeURIComponent(userToken)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      const data = await res.json();
+      return data.circles;
+    }
+  },
+
+  deleteUser: async (userToken: string, email: string): Promise<DeleteUserResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Deleting user:', email);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, message: 'User deleted successfully' };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/admin/deleteuser`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, email })
+        }
+      );
+      return res.json();
+    }
+  },
+
+  deleteCircle: async (userToken: string, circleName: string): Promise<DeleteCircleResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Deleting circle:', circleName);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, message: 'Circle deleted successfully' };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/admin/deletecircle`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, circle_name: circleName })
+        }
+      );
+      return res.json();
+    }
   }
 };
 

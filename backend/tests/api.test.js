@@ -238,6 +238,39 @@ describe('Dashboard API', () => {
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toBe('User_token or Join_code invalid');
     });
+
+    // get user active auctions tests
+    test('GET /dashboard/useractiveauctions - should return active auctions for user', async () => {
+        const res = await request(app).get('/dashboard/useractiveauctions?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('auctions');
+        expect(Array.isArray(res.body.auctions)).toBe(true);
+
+        // verify each auction has required properties
+        res.body.auctions.forEach(auction => {
+            expect(auction).toHaveProperty('circle_id');
+            expect(auction).toHaveProperty('circle_name');
+            expect(auction).toHaveProperty('period_id');
+            expect(auction).toHaveProperty('payout_amount');
+            expect(auction).toHaveProperty('user_bid_amount');
+            expect(auction).toHaveProperty('current_highest_bid');
+            expect(auction).toHaveProperty('current_winner');
+            expect(auction).toHaveProperty('is_winning');
+            expect(auction).toHaveProperty('end_date');
+        });
+    });
+
+    test('GET /dashboard/useractiveauctions - missing token should return 400', async () => {
+        const res = await request(app).get('/dashboard/useractiveauctions');
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBe('User_token invalid');
+    });
+
+    test('GET /dashboard/useractiveauctions - invalid token should return 500', async () => {
+        const res = await request(app).get('/dashboard/useractiveauctions?user_token=invalid-token-xyz');
+        expect(res.statusCode).toBe(500);
+        expect(res.body.error).toBe('Internal Server Error');
+    });
 });
 
 describe('Circle API', () => {

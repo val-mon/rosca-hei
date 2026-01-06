@@ -43,7 +43,7 @@ router.post('/sendcode', async (req, res, next) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ROSCA Authentication Code</title>
+        <title>ROSCA-HEI Authentication Code</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; background-color: #f5f5f5;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
@@ -53,7 +53,7 @@ router.post('/sendcode', async (req, res, next) => {
                 <!-- Header -->
                 <tr>
                   <td style="background: linear-gradient(135deg, #171717 0%, #2d2d2d 100%); padding: 40px; text-align: center;">
-                    <h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 700; letter-spacing: 3px;">ROSCA</h1>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 700; letter-spacing: 3px;">ROSCA-HEI</h1>
                   </td>
                 </tr>
 
@@ -62,7 +62,7 @@ router.post('/sendcode', async (req, res, next) => {
                   <td style="padding: 50px 40px;">
                     <h2 style="margin: 0 0 20px; color: #171717; font-size: 24px; font-weight: 600;">Authentication Code</h2>
                     <p style="margin: 0 0 30px; color: #666666; font-size: 16px; line-height: 1.6;">
-                      Here is your verification code to access your ROSCA account. This code is valid for <strong>5 minutes</strong>.
+                      Here is your verification code to access your ROSCA-HEI account. This code is valid for <strong>5 minutes</strong>.
                     </p>
 
                     <!-- Code Box -->
@@ -87,10 +87,10 @@ router.post('/sendcode', async (req, res, next) => {
                 <tr>
                   <td style="background-color: #f9f9f9; padding: 30px 40px; border-top: 1px solid #eeeeee;">
                     <p style="margin: 0 0 10px; color: #999999; font-size: 12px; text-align: center;">
-                      This email was sent by ROSCA
+                      This email was sent by ROSCA-HEI
                     </p>
                     <p style="margin: 0; color: #999999; font-size: 12px; text-align: center;">
-                      © 2025 ROSCA. All rights reserved.
+                      © 2025 ROSCA-HEI. All rights reserved.
                     </p>
                   </td>
                 </tr>
