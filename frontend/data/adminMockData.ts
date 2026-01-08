@@ -17,7 +17,6 @@ export const mockAdminUsers: AdminUser[] = [
     registrationDate: "2024-01-15",
     lastLogin: "2024-12-17",
     totalCircles: 3,
-    isSuspended: false
   },
   {
     id: 2,
@@ -26,7 +25,6 @@ export const mockAdminUsers: AdminUser[] = [
     registrationDate: "2024-02-20",
     lastLogin: "2024-12-16",
     totalCircles: 2,
-    isSuspended: false
   },
   {
     id: 3,
@@ -35,8 +33,6 @@ export const mockAdminUsers: AdminUser[] = [
     registrationDate: "2024-03-10",
     lastLogin: "2024-11-30",
     totalCircles: 4,
-    isSuspended: true,
-    suspensionReason: "Multiple late payments and flagged by multiple circles"
   },
   {
     id: 9,
@@ -45,7 +41,6 @@ export const mockAdminUsers: AdminUser[] = [
     registrationDate: "2024-04-05",
     lastLogin: "2024-12-18",
     totalCircles: 1,
-    isSuspended: false
   },
   {
     id: 10,
@@ -54,7 +49,6 @@ export const mockAdminUsers: AdminUser[] = [
     registrationDate: "2024-05-12",
     lastLogin: "2024-12-15",
     totalCircles: 2,
-    isSuspended: false
   },
   {
     id: 14,
@@ -63,7 +57,6 @@ export const mockAdminUsers: AdminUser[] = [
     registrationDate: "2024-06-18",
     lastLogin: "2024-12-17",
     totalCircles: 1,
-    isSuspended: false
   },
   {
     id: 20,
@@ -72,8 +65,6 @@ export const mockAdminUsers: AdminUser[] = [
     registrationDate: "2024-07-22",
     lastLogin: "2024-12-10",
     totalCircles: 2,
-    isSuspended: true,
-    suspensionReason: "Consistently late on payments across multiple circles"
   }
 ];
 

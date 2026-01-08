@@ -8,7 +8,6 @@ import {
   CircleDetails,
   PaymentResponse,
   KickMemberResponse,
-  FlagMemberResponse,
   UpdateCircleResponse,
   PlaceBidResponse
 } from './types';
@@ -16,12 +15,10 @@ import {
   AdminStats,
   AdminUser,
   AdminCircle,
-  SuspendUserResponse,
   DeleteUserResponse,
   DeleteCircleResponse,
-  UpdateUserResponse
 } from './adminTypes';
-import { mockUser, mockCircles, mockCircleDetails } from '@/data/mockData';
+import { mockUser, mockCircles, mockCircleDetails, mockAdmin } from '@/data/mockData';
 import { mockAdminStats, mockAdminUsers, mockAdminCircles } from '@/data/adminMockData';
 
 const USE_MOCK_DATA = true;
@@ -51,7 +48,7 @@ const api = {
     if (USE_MOCK_DATA) {
       console.log('Login:', { email, onetimeCode });
       await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true, user: mockUser };
+      return { success: true, user: mockUser, user_token: '' };
     } else {
       const res = await fetch(
         `${BASE_URL}/auth/login?email=${encodeURIComponent(email)}&onetime_code=${encodeURIComponent(onetimeCode)}`,
@@ -237,11 +234,11 @@ const api = {
     }
   },
 
-  kickMember: async (userToken: string, circleId: number): Promise<KickMemberResponse> => {
+  kickMember: async (userToken: string, circleId: number, memberId: number): Promise<KickMemberResponse> => {
     if (USE_MOCK_DATA) {
-      console.log('Kicking member:', { circleId });
+      console.log('Kicking member:', { circleId, memberId });
       await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true, message: 'Member removed from circle' };
+      return { success: true, message: 'Member ' + memberId + ' removed from circle' };
     } else {
 
       // TODO: Implement when backend route exists (currently no kick member route)
@@ -365,9 +362,9 @@ const api = {
     }
   },
 
-  deleteCircle: async (userToken: string, circleName: string): Promise<DeleteCircleResponse> => {
+  deleteCircle: async (userToken: string, circleId: number): Promise<DeleteCircleResponse> => {
     if (USE_MOCK_DATA) {
-      console.log('Deleting circle:', circleName);
+      console.log('Deleting circle:', circleId);
       await new Promise(resolve => setTimeout(resolve, 500));
       return { success: true, message: 'Circle deleted successfully' };
     } else {
@@ -376,7 +373,7 @@ const api = {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_token: userToken, circle_name: circleName })
+          body: JSON.stringify({ user_token: userToken, circle_name: circleId })
         }
       );
       return res.json();

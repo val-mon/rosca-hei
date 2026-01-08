@@ -2,8 +2,6 @@ export interface AdminUser extends User {
   registrationDate: string;
   lastLogin: string;
   totalCircles: number;
-  isSuspended: boolean;
-  suspensionReason?: string;
 }
 
 export interface AdminCircle extends Circle {
@@ -21,11 +19,6 @@ export interface AdminStats {
   totalCircles: number;
   totalFundsCirculating: number;
   averageCircleSize: number;
-}
-
-export interface SuspendUserResponse {
-  success: boolean;
-  message?: string;
 }
 
 export interface DeleteUserResponse {

@@ -2,9 +2,15 @@ import { User, Circle, CircleDetails } from '@/lib/types';
 
 export const mockUser: User = {
   id: 1,
-  name: 'Admin',
-  email: 'admin@example.com',
+  name: 'John',
+  email: 'johndoe@rosca-hei.com',
 };
+
+export const mockAdmin: User = {
+  id: 2,
+  name: 'Admin',
+  email: 'admin@rosca-hei.com',
+}
 
 export const mockCircles: Circle[] = [
   {
@@ -597,8 +603,8 @@ export const mockCircleDetails: Record<number, CircleDetails> = {
 
     currentAuction: {
       periodId: 305,
-      startDate: '2025-12-16',
-      endDate: '2025-12-20',
+      startDate: '2025-12-20',
+      endDate: '2026-01-15',
       payoutAmount: 2000,
       currentHighestBid: 185,
       currentWinner: 'Joey Tribbiani',

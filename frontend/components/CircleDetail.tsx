@@ -14,10 +14,10 @@ interface CircleDetailProps {
   amountOwed: number;
   payoutMode: 'random' | 'auction';
   onBack: () => void;
-  onPayment: (circleId: number, amount: number) => Promise<void>;
+  onPayment: (circleId: number, periodDate: string) => Promise<void>;
   onKickMember: (circleId: number, memberId: number) => Promise<void>;
   onUpdateCircleName: (circleId: number, newName: string) => Promise<void>;
-  onPlaceBid: (circleId: number, periodId: number, bidAmount: number) => Promise<void>;
+  onPlaceBid: (circleId: number, periodDate: string, bidAmount: number) => Promise<void>;
 }
 
 export default function CircleDetail({
@@ -40,6 +40,7 @@ export default function CircleDetail({
   const [showManageModal, setShowManageModal] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [newCircleName, setNewCircleName] = useState(circleName);
+  const [selectedMember, setSelectedMember] = useState<number | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [showAuctionModal, setShowAuctionModal] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
@@ -59,7 +60,7 @@ export default function CircleDetail({
   const handlePayment = async () => {
     setProcessingPayment(true);
     try {
-      await onPayment(circleId, amountOwed);
+      await onPayment(circleId, nextDueDate);
     } finally {
       setProcessingPayment(false);
     }
@@ -98,7 +99,7 @@ export default function CircleDetail({
 
     setPlacingBid(true);
     try {
-      await onPlaceBid(circleId, circleData.currentAuction.periodId, amount);
+      await onPlaceBid(circleId, circleData.currentAuction.endDate, amount);
       setBidAmount('');
       setShowAuctionModal(false);
     } finally {
@@ -376,7 +377,7 @@ export default function CircleDetail({
                           </td>
                           {isAdmin && (
                             <td className="px-4 py-3">
-                              <div className="flex space-x-2">
+                              <div className="flex space-x">
                                 <button
                                   onClick={() => handleKickMember(member.id)}
                                   className="text-red-600 hover:text-red-800"
@@ -629,7 +630,6 @@ export default function CircleDetail({
           </div>
         </div>
       )}
-
     </div>
   )
 }

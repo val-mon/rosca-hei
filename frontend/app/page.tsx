@@ -17,7 +17,7 @@ export default function Home() {
   const [selectedCircleData, setSelectedCircleData] = useState<CircleDetails | null>(null);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [userToken, setUserToken] = useState<string>('');
+  const [userToken, setUserToken] = useState('');
   const [activeAuctions, setActiveAuctions] = useState<any[]>([]);
 
   // Admin states
@@ -25,47 +25,45 @@ export default function Home() {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [adminCircles, setAdminCircles] = useState<AdminCircle[]>([]);
 
-  const handleLogin = async () => {
-    // In a real app, you would show a login form and get credentials
-    // For now, we're simulating with dummy data
-    const result = await api.login('admin@example.com', 'password');
-    console.log(result)
-    if (result.success) {
-      const token = result.user_token || '';
-      setUserToken(token);
-      setUser(result.user || null);
-      setIsLoggedIn(true);
+  const handleSendLoginCode = async (email: string) => {
+    const result = await api.sendCode(email);
+  };
 
-      // Check if user is admin (in real app, this would come from backend)
-      // For demo: admin@example.com is admin
-      if (result.user && result.user.email === 'admin@example.com') {
+  const handleLogin = async (email: string, otp: string) => {
+    const result = await api.login(email, otp);
+    if (result.success) {
+      setUser(result.user ?? null);
+      setUserToken(result.user_token ?? '');
+      setIsLoggedIn(true);
+      
+      if (result.user?.email === 'admin@rosca-hei.com') {
         setIsAdmin(true);
-        const stats = await api.getAdminStats(token);
-        const users = await api.getAllUsers(token);
-        const circles = await api.getAllCircles(token);
+        const stats = await api.getAdminStats(userToken);
+        const users = await api.getAllUsers(userToken);
+        const circles = await api.getAllCircles(userToken);
         setAdminStats(stats);
         setAdminUsers(users);
         setAdminCircles(circles);
       } else {
-        const userCircles = await api.getCircles(token);
-        const auctions = await api.getUserActiveAuctions(token);
+        const userCircles = await api.getCircles(userToken);
+        const auctions = await api.getUserActiveAuctions(userToken);
         setCircles(userCircles);
         setActiveAuctions(auctions);
       }
     }
   };
 
-  const handleSignup = async () => {
+  const handleSignup = async (email: string, username: string, consent: boolean) => {
     // In a real app, you would show a signup form and get user data
     // For now, we're simulating with dummy data
-    const result = await api.signup('John Doe', 'john@example.com', true);
+    const result = await api.signup(username, email, consent);
     if (result.success) {
       const token = result.user_token || '';
       setUserToken(token);
       setUser(result.user || null);
       setIsLoggedIn(true);
-      const userCircles = await api.getCircles(token);
-      const auctions = await api.getUserActiveAuctions(token);
+      const userCircles = await api.getCircles(userToken);
+      const auctions = await api.getUserActiveAuctions(userToken);
       setCircles(userCircles);
       setActiveAuctions(auctions);
     }
@@ -97,8 +95,8 @@ export default function Home() {
     setSelectedCircleData(null);
   };
 
-  const handlePayment = async (circleId: number, amount: number) => {
-    const result = await api.makePayment(userToken, circleId, amount.toString());
+  const handlePayment = async (circleId: number, periodDate: string) => {
+    const result = await api.makePayment(userToken, circleId, periodDate);
     if (result.success) {
       // Refresh circles data
       const userCircles = await api.getCircles(userToken);
@@ -114,7 +112,7 @@ export default function Home() {
   };
 
   const handleKickMember = async (circleId: number, memberId: number) => {
-    const result = await api.kickMember(userToken, circleId);
+    const result = await api.kickMember(userToken, circleId, memberId);
     if (result.success) {
       // Refresh circle details
       const circleData = await api.getCircleDetails(userToken, circleId);
@@ -136,10 +134,7 @@ export default function Home() {
     }
   };
 
-  const handlePlaceBid = async (circleId: number, periodId: number, bidAmount: number) => {
-    // Convert periodId to periodDate string if needed
-    // In a real app, you would get the actual period date from the circle data
-    const periodDate = selectedCircleData?.periods.find(p => p.id === periodId)?.endDate || '';
+  const handlePlaceBid = async (circleId: number, periodDate: string, bidAmount: number) => {
     const result = await api.placeBid(userToken, circleId, periodDate, bidAmount);
     if (result.success) {
       // Refresh circle details to show updated auction
@@ -153,11 +148,8 @@ export default function Home() {
   };
 
   // Admin handlers
-  const handleDeleteUser = async (userId: number) => {
-    const userToDelete = adminUsers.find(u => u.id === userId);
-    if (!userToDelete) return;
-
-    const result = await api.deleteUser(userToken, userToDelete.email);
+  const handleDeleteUser = async (userEmail: string) => {
+    const result = await api.deleteUser(userToken, userEmail);
     if (result.success) {
       const users = await api.getAllUsers(userToken);
       const stats = await api.getAdminStats(userToken);
@@ -168,10 +160,7 @@ export default function Home() {
   };
 
   const handleDeleteCircle = async (circleId: number) => {
-    const circleToDelete = adminCircles.find(c => c.id === circleId);
-    if (!circleToDelete) return;
-
-    const result = await api.deleteCircle(userToken, circleToDelete.name);
+    const result = await api.deleteCircle(userToken, circleId);
     if (result.success) {
       const circles = await api.getAllCircles(userToken);
       const stats = await api.getAdminStats(userToken);
@@ -188,7 +177,7 @@ export default function Home() {
   };
 
   if (!isLoggedIn) {
-    return <LandingPage onLogin={handleLogin} onSignup={handleSignup} />;
+    return <LandingPage onLogin={handleLogin} onSendLoginCode={handleSendLoginCode} onSignup={handleSignup} />;
   }
 
   // Admin viewing a specific circle

@@ -6,7 +6,7 @@ interface AdminDashboardProps {
   stats: AdminStats;
   users: AdminUser[];
   circles: AdminCircle[];
-  onDeleteUser: (userId: number) => Promise<void>;
+  onDeleteUser: (userEmail: string) => Promise<void>;
   onDeleteCircle: (circleId: number) => Promise<void>;
   onViewCircle: (circleId: number) => void;
   onLogout: () => void;
@@ -34,9 +34,9 @@ export default function AdminDashboard({
     circle.creatorName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDelete = async (userId: number, userName: string) => {
+  const handleDelete = async (userEmail: string, userName: string) => {
     if (window.confirm(`Are you sure you want to permanently delete user "${userName}"? This action cannot be undone.`)) {
-      await onDeleteUser(userId);
+      await onDeleteUser(userEmail);
     }
   };
 
@@ -157,13 +157,12 @@ export default function AdminDashboard({
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Registration</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Last Login</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Circles</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredUsers.map(user => (
-                  <tr key={user.id} className={user.isSuspended ? 'bg-red-50' : 'hover:bg-gray-50'}>
+                  <tr key={user.id} className='hover:bg-gray-50'>
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-semibold text-gray-900">{user.name}</div>
@@ -174,25 +173,9 @@ export default function AdminDashboard({
                     <td className="px-6 py-4 text-sm text-gray-600">{user.lastLogin}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">{user.totalCircles}</td>
                     <td className="px-6 py-4">
-                      {user.isSuspended ? (
-                        <div>
-                          <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                            Suspended
-                          </span>
-                          {user.suspensionReason && (
-                            <p className="text-xs text-red-600 mt-1">{user.suspensionReason}</p>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                          Active
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleDelete(user.id, user.name)}
+                          onClick={() => handleDelete(user.email, user.name)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete user"
                         >
@@ -275,8 +258,6 @@ export default function AdminDashboard({
           </div>
         )}
       </div>
-
-      {/* Suspend User Modal */}
     </div>
   );
 }
