@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { Users, DollarSign, TrendingUp, Shield, Search, AlertTriangle, Trash2, Ban, CheckCircle, LogOut, Eye } from 'lucide-react';
+import { Users, DollarSign, TrendingUp, Shield, Search, Trash2, LogOut, Eye } from 'lucide-react';
 import { AdminStats, AdminUser, AdminCircle } from '@/lib/adminTypes';
 
 interface AdminDashboardProps {
   stats: AdminStats;
   users: AdminUser[];
   circles: AdminCircle[];
-  onSuspendUser: (userId: number, reason: string) => Promise<void>;
-  onUnsuspendUser: (userId: number) => Promise<void>;
   onDeleteUser: (userId: number) => Promise<void>;
   onDeleteCircle: (circleId: number) => Promise<void>;
   onViewCircle: (circleId: number) => void;
@@ -18,8 +16,6 @@ export default function AdminDashboard({
   stats,
   users,
   circles,
-  onSuspendUser,
-  onUnsuspendUser,
   onDeleteUser,
   onDeleteCircle,
   onViewCircle,
@@ -27,9 +23,6 @@ export default function AdminDashboard({
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'users' | 'circles'>('users');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSuspendModal, setShowSuspendModal] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [suspensionReason, setSuspensionReason] = useState('');
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -40,20 +33,6 @@ export default function AdminDashboard({
     circle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     circle.creatorName.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const handleSuspend = (userId: number) => {
-    setSelectedUserId(userId);
-    setShowSuspendModal(true);
-  };
-
-  const submitSuspension = async () => {
-    if (selectedUserId && suspensionReason.trim()) {
-      await onSuspendUser(selectedUserId, suspensionReason);
-      setShowSuspendModal(false);
-      setSelectedUserId(null);
-      setSuspensionReason('');
-    }
-  };
 
   const handleDelete = async (userId: number, userName: string) => {
     if (window.confirm(`Are you sure you want to permanently delete user "${userName}"? This action cannot be undone.`)) {
@@ -212,23 +191,6 @@ export default function AdminDashboard({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
-                        {user.isSuspended ? (
-                          <button
-                            onClick={() => onUnsuspendUser(user.id)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Unsuspend user"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleSuspend(user.id)}
-                            className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
-                            title="Suspend user"
-                          >
-                            <Ban className="w-4 h-4" />
-                          </button>
-                        )}
                         <button
                           onClick={() => handleDelete(user.id, user.name)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -315,45 +277,6 @@ export default function AdminDashboard({
       </div>
 
       {/* Suspend User Modal */}
-      {showSuspendModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <div className="flex items-center mb-4">
-              <AlertTriangle className="w-6 h-6 text-yellow-500 mr-3" />
-              <h3 className="text-xl font-bold text-gray-900">Suspend User</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Provide a reason for suspending this user. They will be unable to access their account until unsuspended.
-            </p>
-            <textarea
-              value={suspensionReason}
-              onChange={(e) => setSuspensionReason(e.target.value)}
-              placeholder="e.g., Multiple late payments, fraudulent activity..."
-              className="w-full px-3 py-2 border border-gray-300 text-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-              rows={3}
-            />
-            <div className="flex space-x-3 mt-4">
-              <button
-                onClick={submitSuspension}
-                disabled={!suspensionReason.trim()}
-                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50"
-              >
-                Suspend User
-              </button>
-              <button
-                onClick={() => {
-                  setShowSuspendModal(false);
-                  setSelectedUserId(null);
-                  setSuspensionReason('');
-                }}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

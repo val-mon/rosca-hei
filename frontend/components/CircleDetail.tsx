@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Settings, AlertTriangle, UserX, Flag, Edit2, X, Trophy, Gavel, Clock } from 'lucide-react';
+import { ArrowLeft, Settings, AlertTriangle, UserX, Edit2, X, Trophy, Gavel, Clock } from 'lucide-react';
 import { CircleDetails } from '@/lib/types';
 
 interface CircleDetailProps {
@@ -16,8 +16,6 @@ interface CircleDetailProps {
   onBack: () => void;
   onPayment: (circleId: number, amount: number) => Promise<void>;
   onKickMember: (circleId: number, memberId: number) => Promise<void>;
-  onFlagMember: (circleId: number, memberId: number, reason: string) => Promise<void>;
-  onUnflagMember: (circleId: number, memberId: number) => Promise<void>;
   onUpdateCircleName: (circleId: number, newName: string) => Promise<void>;
   onPlaceBid: (circleId: number, periodId: number, bidAmount: number) => Promise<void>;
 }
@@ -36,17 +34,12 @@ export default function CircleDetail({
   onBack,
   onPayment,
   onKickMember,
-  onFlagMember,
-  onUnflagMember,
   onUpdateCircleName,
   onPlaceBid
 }: CircleDetailProps) {
   const [showManageModal, setShowManageModal] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [newCircleName, setNewCircleName] = useState(circleName);
-  const [selectedMember, setSelectedMember] = useState<number | null>(null);
-  const [flagReason, setFlagReason] = useState('');
-  const [showFlagModal, setShowFlagModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [showAuctionModal, setShowAuctionModal] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
@@ -75,26 +68,7 @@ export default function CircleDetail({
   const handleKickMember = async (memberId: number) => {
     if (window.confirm('Are you sure you want to remove this member from the circle?')) {
       await onKickMember(circleId, memberId);
-      setSelectedMember(null);
     }
-  };
-
-  const handleFlagMember = async (memberId: number) => {
-    setSelectedMember(memberId);
-    setShowFlagModal(true);
-  };
-
-  const submitFlagMember = async () => {
-    if (selectedMember && flagReason.trim()) {
-      await onFlagMember(circleId, selectedMember, flagReason);
-      setShowFlagModal(false);
-      setSelectedMember(null);
-      setFlagReason('');
-    }
-  };
-
-  const handleUnflagMember = async (memberId: number) => {
-    await onUnflagMember(circleId, memberId);
   };
 
   const handleUpdateName = async () => {
@@ -371,15 +345,12 @@ export default function CircleDetail({
                   <table className="w-full table-fixed">
                     <tbody className="divide-y divide-gray-200">
                       {circleData.members.map(member => (
-                        <tr key={member.id} className={member.isFlagged ? 'bg-red-50' : ''}>
+                        <tr key={member.id}>
                           <td className="px-4 py-3">
                             <div className="flex items-center">
                               <div>
                                 <div className="text-sm font-medium text-gray-900 flex items-center">
                                   {member.name}
-                                  {member.isFlagged && (
-                                    <Flag className="w-3 h-3 text-red-500 ml-2" />
-                                  )}
                                   {member.hasReceivedPayout && (
                                     <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
                                       Received
@@ -390,11 +361,6 @@ export default function CircleDetail({
                                 {member.latePayments > 0 && (
                                   <div className="text-xs text-red-600 mt-1">
                                     {member.latePayments} late payment{member.latePayments > 1 ? 's' : ''}
-                                  </div>
-                                )}
-                                {member.isFlagged && member.flagReason && (
-                                  <div className="text-xs text-red-600 italic mt-1">
-                                    {member.flagReason}
                                   </div>
                                 )}
                               </div>
@@ -411,23 +377,6 @@ export default function CircleDetail({
                           {isAdmin && (
                             <td className="px-4 py-3">
                               <div className="flex space-x-2">
-                                {member.isFlagged ? (
-                                  <button
-                                    onClick={() => handleUnflagMember(member.id)}
-                                    className="text-green-600 hover:text-green-800"
-                                    title="Unflag member"
-                                  >
-                                    <Flag className="w-4 h-4" />
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleFlagMember(member.id)}
-                                    className="text-yellow-600 hover:text-yellow-800"
-                                    title="Flag member"
-                                  >
-                                    <Flag className="w-4 h-4" />
-                                  </button>
-                                )}
                                 <button
                                   onClick={() => handleKickMember(member.id)}
                                   className="text-red-600 hover:text-red-800"
@@ -681,43 +630,6 @@ export default function CircleDetail({
         </div>
       )}
 
-      {/* Flag Member Modal */}
-      {showFlagModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Flag Member</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Provide a reason for flagging this member. This will be visible to all circle members.
-            </p>
-            <textarea
-              value={flagReason}
-              onChange={(e) => setFlagReason(e.target.value)}
-              placeholder="e.g., Multiple late payments, unresponsive to messages..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-              rows={3}
-            />
-            <div className="flex space-x-3 mt-4">
-              <button
-                onClick={submitFlagMember}
-                disabled={!flagReason.trim()}
-                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 cursor-pointer"
-              >
-                Flag Member
-              </button>
-              <button
-                onClick={() => {
-                  setShowFlagModal(false);
-                  setSelectedMember(null);
-                  setFlagReason('');
-                }}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -193,7 +193,6 @@ router.get('/useractiveauctions', async (req, res, next) => {
     res.json({ auctions });
   }
   catch (err) {
-    console.error(`ERROR [${req.method} ${req.originalUrl}]:`, err.message);
     next(err);
   }
 });

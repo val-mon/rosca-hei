@@ -72,12 +72,14 @@ export interface CircleDetails {
 
 export interface LoginResponse {
   success: boolean;
-  user: User;
+  user?: User;
+  user_token?: string;
 }
 
 export interface SignupResponse {
   success: boolean;
-  user: User;
+  user?: User;
+  user_token?: string;
 }
 
 export interface LogoutResponse {

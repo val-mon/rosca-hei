@@ -17,8 +17,9 @@ export default function Home() {
   const [selectedCircleData, setSelectedCircleData] = useState<CircleDetails | null>(null);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [userToken, setUserToken] = useState<string>('');
   const [activeAuctions, setActiveAuctions] = useState<any[]>([]);
-  
+
   // Admin states
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
@@ -30,22 +31,24 @@ export default function Home() {
     const result = await api.login('admin@example.com', 'password');
     console.log(result)
     if (result.success) {
-      setUser(result.user);
+      const token = result.user_token || '';
+      setUserToken(token);
+      setUser(result.user || null);
       setIsLoggedIn(true);
-      
+
       // Check if user is admin (in real app, this would come from backend)
       // For demo: admin@example.com is admin
-      if (result.user.email === 'admin@example.com') {
+      if (result.user && result.user.email === 'admin@example.com') {
         setIsAdmin(true);
-        const stats = await api.getAdminStats();
-        const users = await api.getAllUsers();
-        const circles = await api.getAllCircles();
+        const stats = await api.getAdminStats(token);
+        const users = await api.getAllUsers(token);
+        const circles = await api.getAllCircles(token);
         setAdminStats(stats);
         setAdminUsers(users);
         setAdminCircles(circles);
       } else {
-        const userCircles = await api.getCircles();
-        const auctions = await api.getUserActiveAuctions();
+        const userCircles = await api.getCircles(token);
+        const auctions = await api.getUserActiveAuctions(token);
         setCircles(userCircles);
         setActiveAuctions(auctions);
       }
@@ -55,25 +58,28 @@ export default function Home() {
   const handleSignup = async () => {
     // In a real app, you would show a signup form and get user data
     // For now, we're simulating with dummy data
-    const result = await api.signup('John Doe', 'john@example.com', 'password');
+    const result = await api.signup('John Doe', 'john@example.com', true);
     if (result.success) {
-      setUser(result.user);
+      const token = result.user_token || '';
+      setUserToken(token);
+      setUser(result.user || null);
       setIsLoggedIn(true);
-      const userCircles = await api.getCircles();
-      const auctions = await api.getUserActiveAuctions();
+      const userCircles = await api.getCircles(token);
+      const auctions = await api.getUserActiveAuctions(token);
       setCircles(userCircles);
       setActiveAuctions(auctions);
     }
   };
 
   const handleLogout = async () => {
-    await api.logout();
+    await api.logout(userToken);
     setIsLoggedIn(false);
     setIsAdmin(false);
     setSelectedCircleId(null);
     setSelectedCircleData(null);
     setCircles([]);
     setUser(null);
+    setUserToken('');
     setActiveAuctions([]);
     setAdminStats(null);
     setAdminUsers([]);
@@ -81,7 +87,7 @@ export default function Home() {
   };
 
   const handleSelectCircle = async (circleId: number) => {
-    const circleData = await api.getCircleDetails(circleId);
+    const circleData = await api.getCircleDetails(userToken, circleId);
     setSelectedCircleData(circleData);
     setSelectedCircleId(circleId);
   };
@@ -92,101 +98,69 @@ export default function Home() {
   };
 
   const handlePayment = async (circleId: number, amount: number) => {
-    const result = await api.makePayment(circleId, amount);
+    const result = await api.makePayment(userToken, circleId, amount.toString());
     if (result.success) {
       // Refresh circles data
-      const userCircles = await api.getCircles();
+      const userCircles = await api.getCircles(userToken);
       setCircles(userCircles);
       // Refresh circle details
-      const circleData = await api.getCircleDetails(circleId);
+      const circleData = await api.getCircleDetails(userToken, circleId);
       setSelectedCircleData(circleData);
       // Refresh active auctions
-      const auctions = await api.getUserActiveAuctions();
+      const auctions = await api.getUserActiveAuctions(userToken);
       setActiveAuctions(auctions);
       alert(result.message || 'Payment successful!');
     }
   };
 
   const handleKickMember = async (circleId: number, memberId: number) => {
-    const result = await api.kickMember(circleId, memberId);
+    const result = await api.kickMember(userToken, circleId);
     if (result.success) {
       // Refresh circle details
-      const circleData = await api.getCircleDetails(circleId);
+      const circleData = await api.getCircleDetails(userToken, circleId);
       setSelectedCircleData(circleData);
       alert(result.message || 'Member removed successfully');
     }
   };
 
-  const handleFlagMember = async (circleId: number, memberId: number, reason: string) => {
-    const result = await api.flagMember(circleId, memberId, reason);
-    if (result.success) {
-      // Refresh circle details
-      const circleData = await api.getCircleDetails(circleId);
-      setSelectedCircleData(circleData);
-      alert(result.message || 'Member flagged successfully');
-    }
-  };
-
-  const handleUnflagMember = async (circleId: number, memberId: number) => {
-    const result = await api.unflagMember(circleId, memberId);
-    if (result.success) {
-      // Refresh circle details
-      const circleData = await api.getCircleDetails(circleId);
-      setSelectedCircleData(circleData);
-      alert(result.message || 'Member unflagged successfully');
-    }
-  };
-
   const handleUpdateCircleName = async (circleId: number, newName: string) => {
-    const result = await api.updateCircleName(circleId, newName);
+    const result = await api.updateCircleName(userToken, circleId, newName);
     if (result.success) {
       // Refresh circles data
-      const userCircles = await api.getCircles();
+      const userCircles = await api.getCircles(userToken);
       setCircles(userCircles);
       // Refresh circle details
-      const circleData = await api.getCircleDetails(circleId);
+      const circleData = await api.getCircleDetails(userToken, circleId);
       setSelectedCircleData(circleData);
       alert(result.message || 'Circle name updated successfully');
     }
   };
 
   const handlePlaceBid = async (circleId: number, periodId: number, bidAmount: number) => {
-    const result = await api.placeBid(circleId, periodId, bidAmount);
+    // Convert periodId to periodDate string if needed
+    // In a real app, you would get the actual period date from the circle data
+    const periodDate = selectedCircleData?.periods.find(p => p.id === periodId)?.endDate || '';
+    const result = await api.placeBid(userToken, circleId, periodDate, bidAmount);
     if (result.success) {
       // Refresh circle details to show updated auction
-      const circleData = await api.getCircleDetails(circleId);
+      const circleData = await api.getCircleDetails(userToken, circleId);
       setSelectedCircleData(circleData);
       // Refresh active auctions
-      const auctions = await api.getUserActiveAuctions();
+      const auctions = await api.getUserActiveAuctions(userToken);
       setActiveAuctions(auctions);
       alert(result.message || 'Bid placed successfully');
     }
   };
 
   // Admin handlers
-  const handleSuspendUser = async (userId: number, reason: string) => {
-    const result = await api.suspendUser(userId, reason);
-    if (result.success) {
-      const users = await api.getAllUsers();
-      setAdminUsers(users);
-      alert(result.message || 'User suspended successfully');
-    }
-  };
-
-  const handleUnsuspendUser = async (userId: number) => {
-    const result = await api.unsuspendUser(userId);
-    if (result.success) {
-      const users = await api.getAllUsers();
-      setAdminUsers(users);
-      alert(result.message || 'User unsuspended successfully');
-    }
-  };
-
   const handleDeleteUser = async (userId: number) => {
-    const result = await api.deleteUser(userId);
+    const userToDelete = adminUsers.find(u => u.id === userId);
+    if (!userToDelete) return;
+
+    const result = await api.deleteUser(userToken, userToDelete.email);
     if (result.success) {
-      const users = await api.getAllUsers();
-      const stats = await api.getAdminStats();
+      const users = await api.getAllUsers(userToken);
+      const stats = await api.getAdminStats(userToken);
       setAdminUsers(users);
       setAdminStats(stats);
       alert(result.message || 'User deleted successfully');
@@ -194,10 +168,13 @@ export default function Home() {
   };
 
   const handleDeleteCircle = async (circleId: number) => {
-    const result = await api.deleteCircle(circleId);
+    const circleToDelete = adminCircles.find(c => c.id === circleId);
+    if (!circleToDelete) return;
+
+    const result = await api.deleteCircle(userToken, circleToDelete.name);
     if (result.success) {
-      const circles = await api.getAllCircles();
-      const stats = await api.getAdminStats();
+      const circles = await api.getAllCircles(userToken);
+      const stats = await api.getAdminStats(userToken);
       setAdminCircles(circles);
       setAdminStats(stats);
       alert(result.message || 'Circle deleted successfully');
@@ -205,7 +182,7 @@ export default function Home() {
   };
 
   const handleViewCircleFromAdmin = async (circleId: number) => {
-    const circleData = await api.getCircleDetails(circleId);
+    const circleData = await api.getCircleDetails(userToken, circleId);
     setSelectedCircleData(circleData);
     setSelectedCircleId(circleId);
   };
@@ -237,8 +214,6 @@ export default function Home() {
         }}
         onPayment={async () => {}}
         onKickMember={handleKickMember}
-        onFlagMember={handleFlagMember}
-        onUnflagMember={handleUnflagMember}
         onUpdateCircleName={handleUpdateCircleName}
         onPlaceBid={async () => {}}
       />
@@ -252,8 +227,6 @@ export default function Home() {
         stats={adminStats}
         users={adminUsers}
         circles={adminCircles}
-        onSuspendUser={handleSuspendUser}
-        onUnsuspendUser={handleUnsuspendUser}
         onDeleteUser={handleDeleteUser}
         onDeleteCircle={handleDeleteCircle}
         onViewCircle={handleViewCircleFromAdmin}
@@ -282,8 +255,6 @@ export default function Home() {
         onBack={handleBackToDashboard}
         onPayment={handlePayment}
         onKickMember={handleKickMember}
-        onFlagMember={handleFlagMember}
-        onUnflagMember={handleUnflagMember}
         onUpdateCircleName={handleUpdateCircleName}
         onPlaceBid={handlePlaceBid}
       />
