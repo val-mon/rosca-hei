@@ -373,7 +373,7 @@ const api = {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_token: userToken, circle_name: circleId })
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId })
         }
       );
       return res.json();

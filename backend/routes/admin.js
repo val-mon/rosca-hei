@@ -182,6 +182,7 @@ router.get('/circles', async (req, res, next) => {
     );
 
     const circles = circlesResult.rows.map(circle => ({
+      id: circle.id,
       circle_name: circle.circle_name,
       creator: circle.creator,
       nbr_members: parseInt(circle.nbr_members),
@@ -199,9 +200,9 @@ router.get('/circles', async (req, res, next) => {
 
 router.post('/deletecircle', async (req, res, next) => {
   try {
-    const { user_token, circle_name } = req.body;
-    if (!user_token || !circle_name) {
-      return res.status(400).json({ error: 'User_token or Circle_name invalid' });
+    const { user_token, circle_id } = req.body;
+    if (!user_token || !circle_id) {
+      return res.status(400).json({ error: 'User_token or Circle_id invalid' });
     }
 
     // get admin user_id from token
@@ -215,7 +216,7 @@ router.post('/deletecircle', async (req, res, next) => {
     }
 
     // toggle valid to false (modified_date updated by trigger)
-    await db.update('circle', { valid: false }, { name: circle_name });
+    await db.update('circle', { valid: false }, { id: circle_id });
 
     res.json({ success: true, message: 'Circle deleted' });
   }

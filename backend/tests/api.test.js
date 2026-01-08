@@ -545,14 +545,14 @@ describe('Admin API', () => {
 
         const res = await request(app)
             .post('/admin/deletecircle')
-            .send({ user_token: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00', circle_name: 'Temp Circle' });
+            .send({ user_token: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00', circle_id: circle_id });
 
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(res.body.message).toBe('Circle deleted');
 
         // verify circle is marked as invalid
-        const deletedCircle = await db.select('circle', { name: 'Temp Circle' }, 'valid');
+        const deletedCircle = await db.select('circle', { id: circle_id }, 'valid');
         expect(deletedCircle[0].valid).toBe(false);
 
         // clean up
@@ -564,13 +564,13 @@ describe('Admin API', () => {
             .post('/admin/deletecircle')
             .send({ user_token: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00' });
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toBe('User_token or Circle_name invalid');
+        expect(res.body.error).toBe('User_token or Circle_id invalid');
     });
 
     test('POST /admin/deletecircle - non-admin user should return 403', async () => {
         const res = await request(app)
             .post('/admin/deletecircle')
-            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_name: 'Famille Martin' });
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1 });
         expect(res.statusCode).toBe(403);
         expect(res.body.error).toBe('Forbidden: Admin access required');
     });
