@@ -21,7 +21,7 @@ import {
 import { mockUser, mockCircles, mockCircleDetails, mockAdmin } from '@/data/mockData';
 import { mockAdminStats, mockAdminUsers, mockAdminCircles } from '@/data/adminMockData';
 
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 const BASE_URL = 'http://localhost:5431'
 
 const api = {

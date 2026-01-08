@@ -29,7 +29,7 @@ export default function Home() {
     const result = await api.sendCode(email);
   };
 
-  const handleLogin = async (email: string, otp: string) => {
+  const handleLogin = async (email: string, otp: string) => {    
     const result = await api.login(email, otp);
     if (result.success) {
       setUser(result.user ?? null);
@@ -38,15 +38,15 @@ export default function Home() {
       
       if (result.user?.email === 'admin@rosca-hei.com') {
         setIsAdmin(true);
-        const stats = await api.getAdminStats(userToken);
-        const users = await api.getAllUsers(userToken);
-        const circles = await api.getAllCircles(userToken);
+        const stats = await api.getAdminStats(result.user_token ?? '');
+        const users = await api.getAllUsers(result.user_token ?? '');
+        const circles = await api.getAllCircles(result.user_token ?? '');
         setAdminStats(stats);
         setAdminUsers(users);
         setAdminCircles(circles);
       } else {
-        const userCircles = await api.getCircles(userToken);
-        const auctions = await api.getUserActiveAuctions(userToken);
+        const userCircles = await api.getCircles(result.user_token ?? '');
+        const auctions = await api.getUserActiveAuctions(result.user_token ?? '');
         setCircles(userCircles);
         setActiveAuctions(auctions);
       }
@@ -62,8 +62,8 @@ export default function Home() {
       setUserToken(token);
       setUser(result.user || null);
       setIsLoggedIn(true);
-      const userCircles = await api.getCircles(userToken);
-      const auctions = await api.getUserActiveAuctions(userToken);
+      const userCircles = await api.getCircles(token);
+      const auctions = await api.getUserActiveAuctions(token);
       setCircles(userCircles);
       setActiveAuctions(auctions);
     }

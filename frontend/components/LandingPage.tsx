@@ -117,7 +117,7 @@ export default function LandingPage({ onLogin, onSendLoginCode, onSignup }: Land
             {!otpSent && (
             <div className="flex space-x-3 mt-4">
               <button
-                onClick={() => {setOtpSent(true);}}
+                onClick={() => {onSendLoginCode(email);setOtpSent(true);}}
                 className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 cursor-pointer"
               >
                 Send Code

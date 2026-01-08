@@ -12,7 +12,16 @@ router.get('/create', async (req, res, next) => {
 
     const user = await db.insert('"user"', { email: email, username: username, privacy_consent: consent });
     const user_token = await db.insert('user_token', { user_id: user.id })
-    res.json({ user_token: user_token.token });
+
+    res.json({
+      success: true,
+      user_token: user_token.token,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username
+      }
+    });
   }
   catch (err) {
     next(err);
@@ -117,15 +126,15 @@ router.get('/login', async (req, res, next) => {
       return res.status(400).json({ error: 'Email or Onetime_code invalid' });
     }
 
-    // check if user exists and is valid
-    const users = await db.select('"user"', { email: email, valid: true }, 'id');
+    // check if user exists and is valid and get infos
+    const users = await db.select('"user"', { email: email, valid: true }, 'id, email, username');
     if (!users || users.length === 0) {
       return res.status(401).json({ error: 'User not found or inactive' });
     }
-    const user_id = users[0].id;
+    const user = users[0];
 
     // verify the code matches
-    const authResult = await db.select('authentification', { user_id: user_id, code: parseInt(onetime_code) }, 'expiration');
+    const authResult = await db.select('authentification', { user_id: user.id, code: parseInt(onetime_code) }, 'expiration');
     if (!authResult || authResult.length === 0) {
       return res.status(401).json({ error: 'Invalid code' });
     }
@@ -135,12 +144,17 @@ router.get('/login', async (req, res, next) => {
       return res.status(401).json({ error: 'Code expired' });
     }
 
-    // create new user token (allows multiple sessions)
-    const user_token = await db.insert('user_token', { user_id: user_id });
+    // create new user token
+    const user_token = await db.insert('user_token', { user_id: user.id });
 
-    res.json({ user_token: user_token.token });
-  }
-  catch (err) {
+    // response
+    res.json({
+      success: true,
+      user_token: user_token.token,
+      user: user,
+    });
+    }
+    catch (err) {
     next(err);
   }
 });
