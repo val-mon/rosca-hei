@@ -19,7 +19,6 @@ router.get('/userinfo', async (req, res, next) => {
       return res.status(401).json({ error: 'User not found or inactive' });
     }
     const userData = user_info[0];
-    console.log(userData);
 
     // get the circles the user belongs to with all needed info
     const circlesResult = await db.query(
