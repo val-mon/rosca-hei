@@ -98,7 +98,7 @@ router.get('/users', async (req, res, next) => {
       ORDER BY u.id`
     );
     const users = usersResult.rows.map(user => ({
-      name: user.name,
+      username: user.name,
       email: user.email,
       last_login: user.last_login,
       nbr_circles: parseInt(user.nbr_circles),

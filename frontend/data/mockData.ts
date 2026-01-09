@@ -2,13 +2,13 @@ import { User, Circle, CircleDetails } from '@/lib/types';
 
 export const mockUser: User = {
   id: 1,
-  name: 'John',
+  username: 'John',
   email: 'johndoe@rosca-hei.com',
 };
 
 export const mockAdmin: User = {
   id: 2,
-  name: 'Admin',
+  username: 'Admin',
   email: 'admin@rosca-hei.com',
 }
 

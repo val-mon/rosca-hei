@@ -19,32 +19,59 @@ router.get('/userinfo', async (req, res, next) => {
       return res.status(401).json({ error: 'User not found or inactive' });
     }
     const userData = user_info[0];
+    console.log(userData);
 
-    // get the circles the user belongs to
+    // get the circles the user belongs to with all needed info
     const circlesResult = await db.query(
-      ` SELECT
-          c.id as circle_id,
+      `SELECT
+          c.id,
           c.name,
           (SELECT cy.contribution_amount FROM cycle cy WHERE cy.circle_id = c.id ORDER BY cy.id DESC LIMIT 1) as contribution_amount,
+          (SELECT cy.auction_mode FROM cycle cy WHERE cy.circle_id = c.id ORDER BY cy.id DESC LIMIT 1) as auction_mode,
           (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id) as member_count,
+          cm.is_admin,
           (SELECT p.due_date FROM period p
            JOIN cycle cy ON p.cycle_id = cy.id
-           WHERE cy.circle_id = c.id
-           ORDER BY p.due_date DESC LIMIT 1) as due_date
+           WHERE cy.circle_id = c.id AND p.due_date >= CURRENT_DATE
+           ORDER BY p.due_date ASC LIMIT 1) as next_due_date,
+          (SELECT p.id FROM period p
+           JOIN cycle cy ON p.cycle_id = cy.id
+           WHERE cy.circle_id = c.id AND p.due_date >= CURRENT_DATE
+           ORDER BY p.due_date ASC LIMIT 1) as next_period_id,
+          EXISTS(
+            SELECT 1 FROM contribution cont
+            WHERE cont.period_id = (
+              SELECT p.id FROM period p
+              JOIN cycle cy ON p.cycle_id = cy.id
+              WHERE cy.circle_id = c.id AND p.due_date >= CURRENT_DATE
+              ORDER BY p.due_date ASC LIMIT 1
+            ) AND cont.user_id = $1
+          ) as user_has_paid
         FROM circle c
         JOIN circle_member cm ON c.id = cm.circle_id
-        WHERE cm.user_id = $1`,
+        WHERE cm.user_id = $1 AND c.valid = true`,
       [user_id]
     );
 
-    // calculate payout_amount for each circle
-    const circles = circlesResult.rows.map(circle => ({
-      circle_id: circle.circle_id,
-      name: circle.name,
-      contribution_amount: circle.contribution_amount,
-      due_date: circle.due_date,
-      payout_amount: circle.contribution_amount * circle.member_count
-    }));
+    // map circles to match frontend Circle interface
+    const circles = circlesResult.rows.map(circle => {
+      const contributionAmount = parseFloat(circle.contribution_amount) || 0;
+      const memberCount = parseInt(circle.member_count) || 0;
+      const userHasPaid = circle.user_has_paid || false;
+
+      return {
+        id: circle.id,
+        name: circle.name,
+        members: memberCount,
+        contributionAmount: contributionAmount,
+        nextDueDate: circle.next_due_date,
+        upcomingPayout: contributionAmount * memberCount,
+        userHasPaid: userHasPaid,
+        amountOwed: userHasPaid ? 0 : contributionAmount,
+        isAdmin: circle.is_admin,
+        payoutMode: circle.auction_mode ? 'auction' : 'random'
+      };
+    });
 
     // send the respond in json
     const rep = {

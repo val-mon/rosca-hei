@@ -68,6 +68,14 @@ describe('Auth API', () => {
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('user_token');
 
+        expect(res.body).toHaveProperty('user');
+        expect(res.body.user).toHaveProperty('id');
+        expect(res.body.user.id).toBe(1);
+        expect(res.body.user).toHaveProperty('email');
+        expect(res.body.user.email).toBe('alice@example.com');
+        expect(res.body.user).toHaveProperty('username');
+        expect(res.body.user.username).toBe('Alice');
+
         // verify a new token was created
         const newToken = res.body.user_token;
         expect(existingTokens).not.toContain(newToken);
@@ -164,17 +172,27 @@ describe('Dashboard API', () => {
 
         // Famille Martin: Alice is admin, latest cycle contribution_amount=150, 3 members
         const familleMartin = res.body.circles.find(c => c.name === 'Famille Martin');
-        expect(familleMartin.circle_id).toBe(1);
-        expect(parseFloat(familleMartin.contribution_amount)).toBe(150.00);
-        expect(parseFloat(familleMartin.payout_amount)).toBe(450.00);
-        expect(familleMartin).toHaveProperty('due_date');
+        expect(familleMartin.id).toBe(1);
+        expect(familleMartin.contributionAmount).toBe(150.00);
+        expect(familleMartin.upcomingPayout).toBe(450.00);
+        expect(familleMartin.members).toBe(3);
+        expect(familleMartin.isAdmin).toBe(true);
+        expect(familleMartin.payoutMode).toBe('auction'); // cycle2 has auction_mode=true
+        expect(familleMartin).toHaveProperty('nextDueDate');
+        expect(familleMartin).toHaveProperty('userHasPaid');
+        expect(familleMartin).toHaveProperty('amountOwed');
 
         // Collègues Bureau: Alice is member, cycle contribution_amount=200, 4 members
         const colleguesBureau = res.body.circles.find(c => c.name === 'Collègues Bureau');
-        expect(colleguesBureau.circle_id).toBe(2);
-        expect(parseFloat(colleguesBureau.contribution_amount)).toBe(200.00);
-        expect(parseFloat(colleguesBureau.payout_amount)).toBe(800.00);
-        expect(colleguesBureau).toHaveProperty('due_date');
+        expect(colleguesBureau.id).toBe(2);
+        expect(colleguesBureau.contributionAmount).toBe(200.00);
+        expect(colleguesBureau.upcomingPayout).toBe(800.00);
+        expect(colleguesBureau.members).toBe(4);
+        expect(colleguesBureau.isAdmin).toBe(false);
+        expect(colleguesBureau.payoutMode).toBe('auction'); // cycle3 has auction_mode=true
+        expect(colleguesBureau).toHaveProperty('nextDueDate');
+        expect(colleguesBureau).toHaveProperty('userHasPaid');
+        expect(colleguesBureau).toHaveProperty('amountOwed');
     });
 
     test('GET /dashboard/userinfo - missing token should return 400', async () => {
@@ -408,25 +426,25 @@ describe('Admin API', () => {
 
         // verify Alice data
         const alice = res.body.users.find(u => u.email === 'alice@example.com');
-        expect(alice.name).toBe('Alice');
+        expect(alice.username).toBe('Alice');
         expect(alice).toHaveProperty('nbr_circles')
         expect(alice.flaged).toBe(false); // no unwaived penalties
 
         // verify Charlie data (has unwaived penalty)
         const charlie = res.body.users.find(u => u.email === 'charlie@example.com');
-        expect(charlie.name).toBe('Charlie');
+        expect(charlie.username).toBe('Charlie');
         expect(charlie.nbr_circles).toBe(2); // Famille Martin, Amis Université
         expect(charlie.flaged).toBe(true); // has unwaived penalty
 
         // verify Admin data (not in any circles)
         const admin = res.body.users.find(u => u.email === 'admin@rosca-hei.com');
-        expect(admin.name).toBe('Admin');
+        expect(admin.username).toBe('Admin');
         expect(admin.nbr_circles).toBe(0); // not in any circle
         expect(admin.flaged).toBe(false); // no penalties
 
         // verify all users have required properties
         res.body.users.forEach(user => {
-            expect(user).toHaveProperty('name');
+            expect(user).toHaveProperty('username');
             expect(user).toHaveProperty('email');
             expect(user).toHaveProperty('last_login');
             expect(user).toHaveProperty('nbr_circles');
