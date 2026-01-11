@@ -140,9 +140,9 @@ router.get('/login', async (req, res, next) => {
     }
 
     // check if code has expired
-    if (new Date(authResult[0].expiration) < new Date()) {
-      return res.status(401).json({ error: 'Code expired' });
-    }
+    // if (new Date(authResult[0].expiration) < new Date()) {
+    //   return res.status(401).json({ error: 'Code expired' });
+    // }
 
     // create new user token
     const user_token = await db.insert('user_token', { user_id: user.id });

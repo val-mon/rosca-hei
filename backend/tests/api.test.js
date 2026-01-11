@@ -293,17 +293,41 @@ describe('Dashboard API', () => {
 
 describe('Circle API', () => {
     // circle tests
-    // test('GET /circle/circle - should return Famille Martin circle details', async () => {
-    //     const res = await request(app).get('/circle/circle?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&circle_id=1');
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body).toHaveProperty('circle_id');
-    //     expect(res.body).toHaveProperty('circle_name');
-    //     expect(res.body).toHaveProperty('join_code');
-    //     expect(res.body).toHaveProperty('members');
-    //     expect(res.body).toHaveProperty('periods');
-    //     expect(res.body.circle_name).toBe('Famille Martin');
-    //     expect(res.body.join_code).toBe('FAM2024');
-    // });
+    test('GET /circle/circle - should return Famille Martin circle details matching CircleDetails type', async () => {
+        const res = await request(app).get('/circle/circle?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&circle_id=1');
+        expect(res.statusCode).toBe(200);
+
+        // Should return CircleDetails structure
+        expect(res.body).toHaveProperty('members');
+        expect(res.body).toHaveProperty('periods');
+        expect(Array.isArray(res.body.members)).toBe(true);
+        expect(Array.isArray(res.body.periods)).toBe(true);
+
+        // Verify members have CircleMember structure
+        expect(res.body.members.length).toBeGreaterThan(0);
+        res.body.members.forEach(member => {
+            expect(member).toHaveProperty('id');
+            expect(member).toHaveProperty('name');
+            expect(member).toHaveProperty('email');
+            expect(member).toHaveProperty('position');
+            expect(member).toHaveProperty('hasPaid');
+            expect(member).toHaveProperty('latePayments');
+            expect(member).toHaveProperty('totalPenalties');
+            expect(member).toHaveProperty('isFlagged');
+            expect(member).toHaveProperty('hasReceivedPayout');
+        });
+
+        // Verify periods have Period structure
+        expect(res.body.periods.length).toBeGreaterThan(0);
+        res.body.periods.forEach(period => {
+            expect(period).toHaveProperty('id');
+            expect(period).toHaveProperty('startDate');
+            expect(period).toHaveProperty('endDate');
+            expect(period).toHaveProperty('recipient');
+            expect(period).toHaveProperty('status');
+            expect(period).toHaveProperty('amount');
+        });
+    });
 
     test('GET /circle/circle - missing params should return 400', async () => {
         const res = await request(app).get('/circle/circle?user_token=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
@@ -312,13 +336,42 @@ describe('Circle API', () => {
     });
 
     // contribute tests
-    // test('POST /circle/contribute - should record contribution for Alice in Famille Martin', async () => {
-    //     const res = await request(app)
-    //         .post('/circle/contribute')
-    //         .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1, period_date: '2024-05-01' });
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body.success).toBe(true);
-    // });
+    test('POST /circle/contribute - should record contribution for Alice in Famille Martin', async () => {
+        // Get the latest cycle for circle 1
+        const cycle = await db.query(
+            `SELECT id FROM cycle WHERE circle_id = $1 AND valid = true ORDER BY id DESC LIMIT 1`,
+            [1]
+        );
+        const cycle_id = cycle.rows[0].id;
+
+        // Get a valid period from cycle with date as text
+        const periods = await db.query(
+            `SELECT id, TO_CHAR(due_date, 'YYYY-MM-DD') as period_date FROM period WHERE cycle_id = $1 AND valid = true LIMIT 1`,
+            [cycle_id]
+        );
+        const period_id = periods.rows[0].id;
+        const period_date = periods.rows[0].period_date;
+
+        // Get Alice's user_id
+        const aliceToken = await db.select('user_token', { token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }, 'user_id');
+        const alice_id = aliceToken[0].user_id;
+
+        // Make the contribution
+        const res = await request(app)
+            .post('/circle/contribute')
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1, period_date: period_date });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+
+        // Verify contribution was recorded
+        const contributions = await db.select('contribution', { period_id: period_id, user_id: alice_id }, 'id');
+        expect(contributions.length).toBeGreaterThan(0);
+
+        // Clean up - delete the contribution we just created (keep only the last one)
+        const lastContribution = contributions[contributions.length - 1];
+        await db.delete('contribution', { id: lastContribution.id });
+    });
 
     test('POST /circle/contribute - missing params should return 400', async () => {
         const res = await request(app)
@@ -329,13 +382,42 @@ describe('Circle API', () => {
     });
 
     // auction tests
-    // test('POST /circle/auction - should record auction bid for Alice', async () => {
-    //     const res = await request(app)
-    //         .post('/circle/auction')
-    //         .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1, period_date: '2024-05-01', ammount: 950 });
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body.success).toBe(true);
-    // });
+    test('POST /circle/auction - should record auction bid for Alice', async () => {
+        // Get the latest cycle for circle 1
+        const cycle = await db.query(
+            `SELECT id FROM cycle WHERE circle_id = $1 AND valid = true ORDER BY id DESC LIMIT 1`,
+            [1]
+        );
+        const cycle_id = cycle.rows[0].id;
+
+        // Get a valid period from cycle with date as text
+        const periods = await db.query(
+            `SELECT id, TO_CHAR(due_date, 'YYYY-MM-DD') as period_date FROM period WHERE cycle_id = $1 AND valid = true LIMIT 1`,
+            [cycle_id]
+        );
+        const period_id = periods.rows[0].id;
+        const period_date = periods.rows[0].period_date;
+
+        // Get Alice's user_id
+        const aliceToken = await db.select('user_token', { token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }, 'user_id');
+        const alice_id = aliceToken[0].user_id;
+
+        // Place the bid
+        const res = await request(app)
+            .post('/circle/auction')
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1, period_date: period_date, ammount: 950.00 });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+
+        // Verify auction bid was updated
+        const auctions = await db.select('auction', { period_id: period_id, user_id: alice_id, valid: true }, 'ammount');
+        expect(auctions.length).toBeGreaterThan(0);
+        expect(auctions[0].ammount).toBe("950.00");
+
+        // Clean up - mark all Alice's auctions for this period as invalid
+        await db.update('auction', { valid: false }, { period_id: period_id, user_id: alice_id });
+    });
 
     test('POST /circle/auction - missing params should return 400', async () => {
         const res = await request(app)
@@ -345,36 +427,82 @@ describe('Circle API', () => {
         expect(res.body.error).toBe('User_token, Circle_id, Period_date or Ammount invalid');
     });
 
-    // flaguser tests
-    // test('POST /circle/flaguser - should flag Charlie in Famille Martin', async () => {
-    //     const res = await request(app)
-    //         .post('/circle/flaguser')
-    //         .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1 });
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body.success).toBe(true);
-    // });
+    // kick_member tests
+    test('POST /circle/kick_member - should kick member from circle', async () => {
+        // First, add a temporary member to circle 1 (Famille Martin)
+        const tempUser = await db.select('\"user\"', { email: 'eve@example.com' }, 'id');
+        const member_id = tempUser[0].id;
 
-    test('POST /circle/flaguser - missing params should return 400', async () => {
+        // Add Eve to Famille Martin (if not already there)
+        const existingMember = await db.select('circle_member', { circle_id: 1, user_id: member_id }, 'user_id');
+        if (existingMember.length === 0) {
+            await db.insert('circle_member', { circle_id: 1, user_id: member_id, is_admin: false });
+        } else {
+            // Ensure valid is true
+            await db.update('circle_member', { valid: true }, { circle_id: 1, user_id: member_id });
+        }
+
+        // Alice (admin) kicks Eve from Famille Martin
         const res = await request(app)
-            .post('/circle/flaguser')
-            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' });
+            .post('/circle/kick_member')
+            .send({
+                user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // Alice's token
+                circle_id: 1,
+                member_id: member_id
+            });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.message).toBe('Member removed from circle');
+
+        // Verify member was soft-deleted (valid=false)
+        const kickedMember = await db.select('circle_member', { circle_id: 1, user_id: member_id }, 'valid');
+        expect(kickedMember[0].valid).toBe(false);
+
+        // Clean up
+        await db.delete('circle_member', { circle_id: 1, user_id: member_id });
+    });
+
+    test('POST /circle/kick_member - missing params should return 400', async () => {
+        const res = await request(app)
+            .post('/circle/kick_member')
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1 });
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toBe('User_token or Circle_id invalid');
+        expect(res.body.error).toBe('User_token, Circle_id or Member_id invalid');
+    });
+
+    test('POST /circle/kick_member - non-admin should return 403', async () => {
+        const res = await request(app)
+            .post('/circle/kick_member')
+            .send({
+                user_token: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', // Bob's token
+                circle_id: 1, // Famille Martin where Bob is not admin
+                member_id: 3 // Charlie
+            });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Only circle admin can kick members');
     });
 
     // change settings tests
-    // test('POST /circle/change_settings - should update Famille Martin settings', async () => {
-    //     const res = await request(app)
-    //         .post('/circle/change_settings')
-    //         .send({
-    //             user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    //             circle_id: 1,
-    //             name: 'Famille Martin Modifiée',
-    //             contribution_ammount: 150
-    //         });
-    //     expect(res.statusCode).toBe(200);
-    //     expect(res.body.success).toBe(true);
-    // });
+    test('POST /circle/change_settings - should update circle name', async () => {
+        const res = await request(app)
+            .post('/circle/change_settings')
+            .send({
+                user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // Alice (admin of Famille Martin)
+                circle_id: 1,
+                circle_name: 'Famille Martin Updated'
+            });
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.message).toBe('Circle settings updated successfully');
+
+        // Verify circle name was updated
+        const circle = await db.select('circle', { id: 1 }, 'name');
+        expect(circle[0].name).toBe('Famille Martin Updated');
+
+        // Restore original name
+        await db.update('circle', { name: 'Famille Martin' }, { id: 1 });
+    });
 
     test('POST /circle/change_settings - missing params should return 400', async () => {
         const res = await request(app)
@@ -382,6 +510,18 @@ describe('Circle API', () => {
             .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' });
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toBe('User_token or Circle_id invalid');
+    });
+
+    test('POST /circle/change_settings - non-admin should return 403', async () => {
+        const res = await request(app)
+            .post('/circle/change_settings')
+            .send({
+                user_token: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', // Bob's token
+                circle_id: 1, // Famille Martin where Bob is not admin
+                circle_name: 'New Name'
+            });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Only circle admin can change settings');
     });
 });
 

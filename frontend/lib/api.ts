@@ -103,7 +103,7 @@ const api = {
       return {
         user_token: userToken,
         id: 1,
-        username: mockUser.name,
+        username: mockUser.username,
         email: mockUser.email,
         privacy_consent: true,
         circles: mockCircles
@@ -240,12 +240,15 @@ const api = {
       await new Promise(resolve => setTimeout(resolve, 500));
       return { success: true, message: 'Member ' + memberId + ' removed from circle' };
     } else {
-
-      // TODO: Implement when backend route exists (currently no kick member route)
-
-      console.log('Kicking member:', { circleId });
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true, message: 'Member removed from circle' };
+      const res = await fetch(
+        `${BASE_URL}/circle/kick_member`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId, member_id: memberId })
+        }
+      );
+      return res.json();
     }
   },
 
@@ -260,7 +263,7 @@ const api = {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_token: userToken, circle_id: circleId })
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId, circle_name: newName })
         }
       );
       return res.json();
