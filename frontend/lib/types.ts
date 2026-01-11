@@ -62,10 +62,11 @@ export interface Auction {
   hasUserBid: boolean;
   userBidAmount?: number;
   isActive: boolean;
+  canUserBid?: boolean;
 }
 
 export interface CircleDetails {
-  joinCode: string;
+  joinCode?: string;
   members: CircleMember[];
   periods: Period[];
   currentAuction?: Auction;

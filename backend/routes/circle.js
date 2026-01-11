@@ -190,12 +190,65 @@ router.get('/circle', async (req, res, next) => {
     let joinCode = await db.select('circle', {id: circle_id}, 'join_code');
     joinCode = joinCode[0].join_code;
 
+    // Get current auction data if auction mode is enabled
+    let currentAuction = null;
+    if (cycleData.auction_mode && currentPeriodData) {
+      // Get all bids for the current period
+      const bidsData = await db.query(
+        `SELECT a.id, a.user_id, a.ammount, a.contribution_date, u.username
+        FROM auction a
+        JOIN "user" u ON u.id = a.user_id
+        WHERE a.period_id = $1 AND a.valid = true
+        ORDER BY a.ammount DESC`,
+        [currentPeriodData.id]
+      );
+
+      const highestBid = bidsData.rows.length > 0 ? bidsData.rows[0] : null;
+      const userBid = bidsData.rows.find(b => b.user_id === logged_user_id);
+
+      // Check if the logged user has already received a payout in this cycle
+      const userPayoutCheck = await db.query(
+        `SELECT po.id FROM payout po
+        JOIN period per ON per.id = po.period_id
+        WHERE per.cycle_id = $1 AND po.user_id = $2 AND po.valid = true`,
+        [cycleData.id, logged_user_id]
+      );
+      const userHasReceivedPayout = userPayoutCheck.rows.length > 0;
+
+      const bids = bidsData.rows.map((bid, index) => ({
+        id: bid.id,
+        memberId: bid.user_id,
+        memberName: bid.username,
+        bidAmount: parseFloat(bid.ammount),
+        timestamp: bid.contribution_date,
+        isWinning: index === 0
+      }));
+
+      // Format date as YYYY-MM-DD string for frontend
+      const periodDateStr = new Date(currentPeriodData.due_date).toISOString().split('T')[0];
+
+      currentAuction = {
+        periodId: currentPeriodData.id,
+        startDate: periodDateStr,
+        endDate: periodDateStr,
+        payoutAmount: cycleData.contribution_amount * members.length,
+        currentHighestBid: highestBid ? parseFloat(highestBid.ammount) : 0,
+        currentWinner: highestBid ? highestBid.username : null,
+        bids: bids,
+        hasUserBid: !!userBid,
+        userBidAmount: userBid ? parseFloat(userBid.ammount) : undefined,
+        isActive: true,
+        canUserBid: !userHasReceivedPayout
+      };
+    }
+
     // Return CircleDetails structure matching frontend type
     res.json({
       joinCode: joinCode,
       members: members,
       periods: periods,
-      hasCycle: true
+      hasCycle: true,
+      currentAuction: currentAuction
     });
   }
   catch (err) {
@@ -270,7 +323,7 @@ router.post('/auction', async (req, res, next) => {
 
     // Find period by cycle and date
     const periodInfo = await db.query(
-      `SELECT id FROM period WHERE cycle_id = $1 AND TO_CHAR(due_date, 'YYYY-MM-DD') = $2 AND valid = true LIMIT 1`,
+      `SELECT id FROM period WHERE cycle_id = $1 AND TO_CHAR(due_date - 1, 'YYYY-MM-DD') = $2 AND valid = true LIMIT 1`,
       [cycle_id, period_date]
     );
     if (!periodInfo.rows || periodInfo.rows.length === 0) {

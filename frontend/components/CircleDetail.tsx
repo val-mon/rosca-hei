@@ -313,7 +313,7 @@ export default function CircleDetail({
                   })()}
                 </div>
               </div>
-              {!circleData.members.find(m => m.id === 1)?.hasReceivedPayout && (
+              {circleData.currentAuction.canUserBid && (
                 <button
                   onClick={() => setShowAuctionModal(true)}
                   className="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm whitespace-nowrap cursor-pointer"
