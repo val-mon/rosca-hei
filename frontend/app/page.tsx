@@ -155,6 +155,21 @@ export default function Home() {
     }
   };
 
+  const handleStartCycle = async (circleId: number, contributionAmount: number, payoutMode: 'random' | 'auction') => {
+    const result = await api.startCycle(userToken, circleId, contributionAmount, payoutMode);
+    if (result.success) {
+      // Refresh circles data
+      const userCircles = await api.getCircles(userToken);
+      setCircles(userCircles);
+      // Refresh circle details
+      const circleData = await api.getCircleDetails(userToken, circleId);
+      setSelectedCircleData(circleData);
+      alert(result.message || 'Cycle started successfully');
+    } else {
+      alert('Failed to start cycle');
+    }
+  };
+
   // Admin handlers
   const handleDeleteUser = async (userEmail: string) => {
     const result = await api.deleteUser(userToken, userEmail);
@@ -213,6 +228,7 @@ export default function Home() {
         onKickMember={handleKickMember}
         onUpdateCircleName={handleUpdateCircleName}
         onPlaceBid={async () => {}}
+        onStartCycle={handleStartCycle}
       />
     );
   }
@@ -254,6 +270,7 @@ export default function Home() {
         onKickMember={handleKickMember}
         onUpdateCircleName={handleUpdateCircleName}
         onPlaceBid={handlePlaceBid}
+        onStartCycle={handleStartCycle}
       />
     );
   }

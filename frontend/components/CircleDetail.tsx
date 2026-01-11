@@ -18,6 +18,7 @@ interface CircleDetailProps {
   onKickMember: (circleId: number, memberId: number) => Promise<void>;
   onUpdateCircleName: (circleId: number, newName: string) => Promise<void>;
   onPlaceBid: (circleId: number, periodDate: string, bidAmount: number) => Promise<void>;
+  onStartCycle: (circleId: number, contributionAmount: number, payoutMode: 'random' | 'auction') => Promise<void>;
 }
 
 export default function CircleDetail({
@@ -35,7 +36,8 @@ export default function CircleDetail({
   onPayment,
   onKickMember,
   onUpdateCircleName,
-  onPlaceBid
+  onPlaceBid,
+  onStartCycle
 }: CircleDetailProps) {
   const [showManageModal, setShowManageModal] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -46,6 +48,10 @@ export default function CircleDetail({
   const [bidAmount, setBidAmount] = useState('');
   const [placingBid, setPlacingBid] = useState(false);
   const [activeTab, setActiveTab] = useState<'members' | 'leaderboard'>('members');
+  const [showStartCycleModal, setShowStartCycleModal] = useState(false);
+  const [cycleContributionAmount, setCycleContributionAmount] = useState('');
+  const [cyclePayoutMode, setCyclePayoutMode] = useState<'random' | 'auction'>('random');
+  const [startingCycle, setStartingCycle] = useState(false);
 
   if (!circleData) {
     return (
@@ -104,6 +110,24 @@ export default function CircleDetail({
       setShowAuctionModal(false);
     } finally {
       setPlacingBid(false);
+    }
+  };
+
+  const handleStartCycle = async () => {
+    const amount = parseFloat(cycleContributionAmount);
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid contribution amount');
+      return;
+    }
+
+    setStartingCycle(true);
+    try {
+      await onStartCycle(circleId, amount, cyclePayoutMode);
+      setCycleContributionAmount('');
+      setCyclePayoutMode('random');
+      setShowStartCycleModal(false);
+    } finally {
+      setStartingCycle(false);
     }
   };
 
@@ -241,6 +265,31 @@ export default function CircleDetail({
             )}
           </div>
         </div>
+
+        {/* No Cycle Alert */}
+        {circleData.hasCycle === false && (
+          <div className="bg-orange-50 border-l-4 border-orange-400 p-4 mb-8 rounded">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <AlertTriangle className="w-5 h-5 text-orange-400 mr-3" />
+                <div>
+                  <h3 className="text-sm font-medium text-orange-800">No Active Cycle</h3>
+                  <p className="text-sm text-orange-700 mt-1">
+                    This circle doesn't have an active cycle yet. {isAdmin ? 'Start a cycle to begin collecting contributions.' : 'The circle admin needs to start a cycle.'}
+                  </p>
+                </div>
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowStartCycleModal(true)}
+                  className="ml-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium text-sm whitespace-nowrap cursor-pointer"
+                >
+                  Start Cycle
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Active Auction Alert */}
         {circleData.currentAuction && circleData.currentAuction.isActive && (
@@ -621,6 +670,92 @@ export default function CircleDetail({
                 onClick={() => {
                   setShowAuctionModal(false);
                   setBidAmount('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Start Cycle Modal */}
+      {showStartCycleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Start New Cycle</h3>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Configure the cycle settings. Each member will contribute the specified amount per period.
+              There will be {circleMembers} periods (one for each member).
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contribution Amount (CHF)
+              </label>
+              <input
+                type="number"
+                value={cycleContributionAmount}
+                onChange={(e) => setCycleContributionAmount(e.target.value)}
+                placeholder="Enter amount per period"
+                min={1}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Total payout per period: {(parseFloat(cycleContributionAmount) || 0) * circleMembers} CHF
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Payout Mode
+              </label>
+              <div className="flex space-x-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="payoutMode"
+                    value="random"
+                    checked={cyclePayoutMode === 'random'}
+                    onChange={() => setCyclePayoutMode('random')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Random</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="payoutMode"
+                    value="auction"
+                    checked={cyclePayoutMode === 'auction'}
+                    onChange={() => setCyclePayoutMode('auction')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Auction</span>
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {cyclePayoutMode === 'random'
+                  ? 'Recipients are selected randomly each period.'
+                  : 'Members bid for each period. Highest bidder receives payout minus their bid.'}
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleStartCycle}
+                disabled={startingCycle || !cycleContributionAmount || parseFloat(cycleContributionAmount) <= 0}
+                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {startingCycle ? 'Starting...' : 'Start Cycle'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowStartCycleModal(false);
+                  setCycleContributionAmount('');
+                  setCyclePayoutMode('random');
                 }}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 cursor-pointer"
               >

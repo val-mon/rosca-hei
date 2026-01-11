@@ -28,8 +28,39 @@ router.get('/circle', async (req, res, next) => {
       `SELECT id, contribution_amount, auction_mode FROM cycle WHERE circle_id = $1 AND valid = true ORDER BY id DESC LIMIT 1`,
       [parseInt(circle_id)]
     );
+
+    // If no active cycle exists, return empty data with hasCycle flag
     if (!cycle_info.rows || cycle_info.rows.length === 0) {
-      return res.status(404).json({ error: 'No active cycle found for this circle' });
+      // Get members without cycle-specific data
+      const members_info = await db.query(
+        `SELECT
+          cm.user_id,
+          cm.is_admin,
+          u.username AS member_name,
+          u.email AS member_email
+        FROM circle_member cm
+        JOIN "user" u ON u.id = cm.user_id
+        WHERE cm.circle_id = $1 AND cm.valid = true`,
+        [parseInt(circle_id)]
+      );
+
+      const members = members_info.rows.map((member, index) => ({
+        id: member.user_id,
+        name: member.member_name,
+        email: member.member_email,
+        position: index + 1,
+        hasPaid: false,
+        latePayments: 0,
+        totalPenalties: 0,
+        isFlagged: false,
+        hasReceivedPayout: false
+      }));
+
+      return res.json({
+        members: members,
+        periods: [],
+        hasCycle: false
+      });
     }
     const cycleData = cycle_info.rows[0];
 
@@ -159,7 +190,8 @@ router.get('/circle', async (req, res, next) => {
     // Return CircleDetails structure matching frontend type
     res.json({
       members: members,
-      periods: periods
+      periods: periods,
+      hasCycle: true
     });
   }
   catch (err) {
@@ -291,6 +323,71 @@ router.post('/change_settings', async (req, res, next) => {
     }
 
     res.json({ success: true, message: 'Circle settings updated successfully' });
+  }
+  catch (err) {
+    next(err);
+  }
+});
+
+router.post('/start_cycle', async (req, res, next) => {
+  try {
+    const { user_token, circle_id, contribution_amount, payout_mode } = req.body;
+    if (!user_token || !circle_id || !contribution_amount || !payout_mode) {
+      return res.status(400).json({ error: 'User_token, Circle_id, Contribution_amount or Payout_mode invalid' });
+    }
+
+    // Verify user has admin rights for this circle
+    const tokenResult = await db.select('user_token', { token: user_token }, 'user_id');
+    if (!tokenResult || tokenResult.length === 0) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    const user_id = tokenResult[0].user_id;
+
+    const adminCheck = await db.select('circle_member', { circle_id: circle_id, user_id: user_id }, 'is_admin');
+    if (!adminCheck || adminCheck.length === 0 || !adminCheck[0].is_admin) {
+      return res.status(403).json({ error: 'Only circle admin can start a cycle' });
+    }
+
+    // Check if there's already an active cycle
+    const existingCycle = await db.query(
+      `SELECT id FROM cycle WHERE circle_id = $1 AND valid = true`,
+      [parseInt(circle_id)]
+    );
+    if (existingCycle.rows && existingCycle.rows.length > 0) {
+      return res.status(400).json({ error: 'An active cycle already exists for this circle' });
+    }
+
+    // Get number of members in the circle
+    const membersCount = await db.query(
+      `SELECT COUNT(*) as count FROM circle_member WHERE circle_id = $1 AND valid = true`,
+      [parseInt(circle_id)]
+    );
+    const memberCount = parseInt(membersCount.rows[0].count);
+
+    if (memberCount < 2) {
+      return res.status(400).json({ error: 'At least 2 members are required to start a cycle' });
+    }
+
+    // Create the cycle
+    const auctionMode = payout_mode === 'auction';
+    const cycle = await db.insert('cycle', {
+      circle_id: parseInt(circle_id),
+      contribution_amount: parseFloat(contribution_amount),
+      auction_mode: auctionMode
+    });
+
+    // Create periods (one for each member, starting from today, weekly intervals)
+    const today = new Date();
+    for (let i = 0; i < memberCount; i++) {
+      const dueDate = new Date(today);
+      dueDate.setDate(today.getDate() + (i * 7)); // Weekly periods
+      await db.insert('period', {
+        cycle_id: cycle.id,
+        due_date: dueDate.toISOString().split('T')[0]
+      });
+    }
+
+    res.json({ success: true, message: 'Cycle started successfully', cycle_id: cycle.id });
   }
   catch (err) {
     next(err);

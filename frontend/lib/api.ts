@@ -9,7 +9,8 @@ import {
   PaymentResponse,
   KickMemberResponse,
   UpdateCircleResponse,
-  PlaceBidResponse
+  PlaceBidResponse,
+  StartCycleResponse
 } from './types';
 import {
   AdminStats,
@@ -297,6 +298,28 @@ const api = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_token: userToken, circle_id: circleId, period_date: periodDate, ammount: amount })
+        }
+      );
+      return res.json();
+    }
+  },
+
+  startCycle: async (userToken: string, circleId: number, contributionAmount: number, payoutMode: 'random' | 'auction'): Promise<StartCycleResponse> => {
+    if (USE_MOCK_DATA) {
+      console.log('Starting cycle:', { circleId, contributionAmount, payoutMode });
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return {
+        success: true,
+        message: 'Cycle started successfully',
+        cycle_id: 1
+      };
+    } else {
+      const res = await fetch(
+        `${BASE_URL}/circle/start_cycle`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId, contribution_amount: contributionAmount, payout_mode: payoutMode })
         }
       );
       return res.json();

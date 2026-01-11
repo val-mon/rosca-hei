@@ -68,6 +68,7 @@ export interface CircleDetails {
   members: CircleMember[];
   periods: Period[];
   currentAuction?: Auction;
+  hasCycle?: boolean;
 }
 
 export interface LoginResponse {
@@ -123,4 +124,10 @@ export interface PlaceBidResponse {
   success: boolean;
   message?: string;
   isWinning?: boolean;
+}
+
+export interface StartCycleResponse {
+  success: boolean;
+  message?: string;
+  cycle_id?: number;
 }
