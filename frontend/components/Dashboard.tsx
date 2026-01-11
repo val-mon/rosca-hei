@@ -112,7 +112,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onL
             <div
               key={circle.id}
               onClick={() => onSelectCircle(circle.id)}
-              className={`bg-${circle.isAdmin ? 'sky' : 'white'}-100 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer`}
+              className={`bg-${circle.isAdmin ? 'blue' : 'white'}-100 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer`}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-gray-900">{circle.name}</h3>

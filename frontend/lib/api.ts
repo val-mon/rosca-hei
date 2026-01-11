@@ -64,7 +64,6 @@ const api = {
       );
 
       const temp = res.json();
-      console.log(temp);
       return temp;
     }
   },

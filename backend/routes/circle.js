@@ -187,8 +187,12 @@ router.get('/circle', async (req, res, next) => {
       };
     });
 
+    let joinCode = await db.select('circle', {id: circle_id}, 'join_code');
+    joinCode = joinCode[0].join_code;
+
     // Return CircleDetails structure matching frontend type
     res.json({
+      joinCode: joinCode,
       members: members,
       periods: periods,
       hasCycle: true

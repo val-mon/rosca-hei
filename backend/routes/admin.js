@@ -183,12 +183,12 @@ router.get('/circles', async (req, res, next) => {
 
     const circles = circlesResult.rows.map(circle => ({
       id: circle.id,
-      circle_name: circle.circle_name,
+      name: circle.circle_name,
       creator: circle.creator,
       nbr_members: parseInt(circle.nbr_members),
       progress: parseInt(circle.progress),
       total_funds: parseFloat(circle.total_funds),
-      mode: circle.mode ? 'auction' : 'standard'
+      payoutMode: circle.mode ? 'auction' : 'random'
     }));
 
     res.json({ circles });

@@ -25,13 +25,13 @@ export default function AdminDashboard({
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredCircles = circles.filter(circle =>
     circle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    circle.creatorName.toLowerCase().includes(searchQuery.toLowerCase())
+    circle.creator.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleDelete = async (userEmail: string, userName: string) => {
@@ -75,10 +75,7 @@ export default function AdminDashboard({
               <h3 className="text-sm font-semibold text-gray-600">Total Users</h3>
               <Users className="w-5 h-5 text-blue-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats.activeUsers} active • {stats.suspendedUsers} suspended
-            </p>
+            <p className="text-3xl font-bold text-gray-900">{stats.total_users}</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
@@ -86,8 +83,7 @@ export default function AdminDashboard({
               <h3 className="text-sm font-semibold text-gray-600">Total Circles</h3>
               <TrendingUp className="w-5 h-5 text-green-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalCircles}</p>
-            <p className="text-xs text-gray-500 mt-1">Rotating circles</p>
+            <p className="text-3xl font-bold text-gray-900">{stats.total_circles}</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500">
@@ -95,7 +91,7 @@ export default function AdminDashboard({
               <h3 className="text-sm font-semibold text-gray-600">Funds Circulating</h3>
               <DollarSign className="w-5 h-5 text-purple-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalFundsCirculating.toLocaleString()} CHF</p>
+            <p className="text-3xl font-bold text-gray-900">{stats.funds_circulating.toLocaleString()} CHF</p>
             <p className="text-xs text-gray-500 mt-1">Total in circles</p>
           </div>
 
@@ -104,7 +100,7 @@ export default function AdminDashboard({
               <h3 className="text-sm font-semibold text-gray-600">Avg Circle Size</h3>
               <Users className="w-5 h-5 text-orange-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.averageCircleSize}</p>
+            <p className="text-3xl font-bold text-gray-900">{stats.average_circle_size}</p>
             <p className="text-xs text-gray-500 mt-1">members per circle</p>
           </div>
         </div>
@@ -165,7 +161,7 @@ export default function AdminDashboard({
                   <tr key={user.id} className='hover:bg-gray-50'>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-semibold text-gray-900">{user.name}</div>
+                        <div className="font-semibold text-gray-900">{user.username}</div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
                     </td>
@@ -175,7 +171,7 @@ export default function AdminDashboard({
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleDelete(user.email, user.name)}
+                          onClick={() => handleDelete(user.email, user.username)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete user"
                         >
@@ -216,13 +212,13 @@ export default function AdminDashboard({
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{circle.creatorName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{circle.creator}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">{circle.members}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {circle.completedPeriods} / {circle.totalPeriods}
+                      {circle.completed_periods} / {circle.total_periods}
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      {circle.totalFunds.toLocaleString()} CHF
+                      {circle.total_funds ? circle.total_funds.toLocaleString() : 0} CHF
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">

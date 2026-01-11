@@ -6,19 +6,18 @@ export interface AdminUser extends User {
 
 export interface AdminCircle extends Circle {
   createdDate: string;
-  creatorName: string;
-  totalPeriods: number;
-  completedPeriods: number;
-  totalFunds: number;
+  creator: string;
+  total_periods: number;
+  completed_periods: number;
+  total_funds: number;
 }
 
 export interface AdminStats {
-  totalUsers: number;
-  activeUsers: number;
+  total_users: number;
   suspendedUsers: number;
-  totalCircles: number;
-  totalFundsCirculating: number;
-  averageCircleSize: number;
+  total_circles: number;
+  funds_circulating: number;
+  average_circle_size: number;
 }
 
 export interface DeleteUserResponse {

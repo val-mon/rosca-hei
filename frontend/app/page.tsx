@@ -43,6 +43,7 @@ export default function Home() {
         const circles = await api.getAllCircles(result.user_token ?? '');
         setAdminStats(stats);
         setAdminUsers(users);
+        console.log(circles);
         setAdminCircles(circles);
       } else {
         const userCircles = await api.getCircles(result.user_token ?? '');

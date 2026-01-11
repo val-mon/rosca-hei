@@ -180,13 +180,7 @@ export default function CircleDetail({
             <span>Back to Dashboard</span>
           </button>
           {isAdmin && (
-            <button
-              onClick={() => setShowManageModal(!showManageModal)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-400 hover:bg-gray-500 cursor-pointer rounded-lg"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Manage Circle</span>
-            </button>
+            <p className='text-indigo-900'>Join code: {circleData.joinCode}</p>
           )}
         </div>
       </nav>

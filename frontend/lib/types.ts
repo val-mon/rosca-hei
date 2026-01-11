@@ -65,6 +65,7 @@ export interface Auction {
 }
 
 export interface CircleDetails {
+  joinCode: string;
   members: CircleMember[];
   periods: Period[];
   currentAuction?: Auction;
