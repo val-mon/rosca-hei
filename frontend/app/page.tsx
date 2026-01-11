@@ -90,6 +90,14 @@ export default function Home() {
     setSelectedCircleId(circleId);
   };
 
+  const handleCreateCircle = async (circleName: string) => {
+    const result = await api.createCircle(userToken, circleName);
+  }
+
+  const handleJoinCircle = async (joinCode: string) => {
+    const result = await api.joinCircle(userToken, joinCode);
+  }
+
   const handleBackToDashboard = () => {
     setSelectedCircleId(null);
     setSelectedCircleData(null);
@@ -257,6 +265,8 @@ export default function Home() {
         activeAuctions={activeAuctions}
         onSelectCircle={handleSelectCircle}
         onLogout={handleLogout}
+        onCreateCircle={handleCreateCircle}
+        onJoinCircle={handleJoinCircle}
         user={user}
       />
     );

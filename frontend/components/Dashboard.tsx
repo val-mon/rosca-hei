@@ -1,6 +1,6 @@
 // components/Dashboard.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Users, DollarSign, TrendingUp, LogOut, Gavel, Trophy, Clock, AlertCircle } from 'lucide-react';
 import { Circle, User } from '@/lib/types';
 
@@ -22,10 +22,16 @@ interface DashboardProps {
   activeAuctions: ActiveAuction[];
   onSelectCircle: (circleId: number) => void;
   onLogout: () => void;
+  onCreateCircle: (name: string) => void;
+  onJoinCircle: (joinCode: string) => void;
   user: User;
 }
 
-export default function Dashboard({ circles, activeAuctions, onSelectCircle, onLogout, user }: DashboardProps) {
+export default function Dashboard({ circles, activeAuctions, onSelectCircle, onLogout, onCreateCircle, onJoinCircle, user }: DashboardProps) {
+  const [showCreateCircleModal, setShowCreateCircleModal] = useState(false);
+  const [showJoinCircleModal, setShowJoinCircleModal] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [circleName, setCircleName] = useState('');
   const totalDueNext2Weeks = circles.reduce((sum, circle) => {
     const dueDate = new Date(circle.nextDueDate);
     const today = new Date();
@@ -80,13 +86,33 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onL
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">My Circles</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">
+            My Circles
+          </h2>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowCreateCircleModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+            >
+              Create circle
+            </button>
+
+            <button
+              onClick={() => setShowJoinCircleModal(true)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+            >
+              Join circle
+            </button>
+          </div>
+        </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {circles.map(circle => (
             <div
               key={circle.id}
               onClick={() => onSelectCircle(circle.id)}
-              className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+              className={`bg-${circle.isAdmin ? 'sky' : 'white'}-100 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer`}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-gray-900">{circle.name}</h3>
@@ -146,7 +172,81 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onL
           ))}
         </div>
 
-        {/* Active Auctions Section */}
+        {/* Create circle Modal */}
+        {showCreateCircleModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Create circle</h3>
+                <p className='text-gray-900 mt-4'>Circle name</p>
+                <input
+                  onChange={(e) => setCircleName(e.target.value)}
+                  placeholder="Example circle"
+                  className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  type='text'
+                />
+
+              <div className="flex space-x-3 mt-4">
+                <button
+                  onClick={() => {
+                    onCreateCircle(circleName);
+                    setShowCreateCircleModal(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 cursor-pointer"
+                >
+                  Create
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCreateCircleModal(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Join circle Modal */}
+        {showJoinCircleModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Join circle</h3>
+                <p className='text-gray-900 mt-4'>Join code</p>
+                <input
+                  onChange={(e) => setJoinCode(e.target.value)}
+                  placeholder="123456"
+                  className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  type='text'
+                />
+
+              <div className="flex space-x-3 mt-4">
+                <button
+                  onClick={() => {
+                    onJoinCircle(joinCode);
+                    setShowJoinCircleModal(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 cursor-pointer"
+                >
+                  Join
+                </button>
+                <button
+                  onClick={() => {
+                    setShowJoinCircleModal(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Active Auctions Section 
         {activeAuctions.length > 0 && (
           <div className="mb-8 gap-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
@@ -228,7 +328,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onL
               ))}
             </div>
           </div>
-        )}
+        )}*/}
       </div>
     </div>
   );

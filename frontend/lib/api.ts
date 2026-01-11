@@ -48,7 +48,11 @@ const api = {
     if (USE_MOCK_DATA) {
       console.log('Login:', { email, onetimeCode });
       await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true, user: mockUser, user_token: '' };
+      if (email === 'admin@rosca-hei.com') {
+        return { success: true, user: mockAdmin, user_token: '' };
+      } else {
+        return { success: true, user: mockUser, user_token: '' };
+      }
     } else {
       const res = await fetch(
         `${BASE_URL}/auth/login?email=${encodeURIComponent(email)}&onetime_code=${encodeURIComponent(onetimeCode)}`,
@@ -57,7 +61,10 @@ const api = {
           headers: { 'Content-Type': 'application/json' }
         }
       );
-      return res.json();
+
+      const temp = res.json();
+      console.log(temp);
+      return temp;
     }
   },
 
@@ -212,7 +219,10 @@ const api = {
           headers: { 'Content-Type': 'application/json' }
         }
       );
-      return res.json();
+
+      const temp = res.json();
+      console.log(temp);
+      return temp;
     }
   },
 
