@@ -168,14 +168,14 @@ router.get('/circle', async (req, res, next) => {
 
     const currentDate = new Date();
     const periods = periodsData.rows.map((period) => {
-      const periodDate = new Date(period.start_date);
+      const periodDate = new Date(period.end_date);
       let status;
-      if (period.recipient_name) {
+      if (periodDate < currentDate) {
         status = 'completed';
       } else if (currentPeriodData && period.id === currentPeriodData.id) {
         period.recipient_name = 'Not yet defined';
         status = 'current';
-      } else if (periodDate > currentDate) {
+      } else if (periodDate >= currentDate) {
         period.recipient_name = 'Not yet defined';
         status = 'upcoming';
       } else {
@@ -463,7 +463,7 @@ router.post('/start_cycle', async (req, res, next) => {
 
     // Create periods
     const today = new Date();
-    for (let i = 0; i < memberCount; i++) {
+    for (let i = 1; i <= memberCount; i++) {
       const dueDate = new Date(today);
       dueDate.setDate(today.getDate() + (i * 14));
       await db.insert('period', {
