@@ -64,11 +64,12 @@ router.get('/circle', async (req, res, next) => {
     }
     const cycleData = cycle_info.rows[0];
 
-    // Get current period (closest due_date in the future)
+    // Get current period (period without payout, ordered by due_date)
     const current_period = await db.query(
-      `SELECT id, due_date FROM period
-       WHERE cycle_id = $1 AND valid = true
-       ORDER BY due_date ASC LIMIT 1`,
+      `SELECT p.id, p.due_date FROM period p
+       LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
+       WHERE p.cycle_id = $1 AND p.valid = true AND po.id IS NULL
+       ORDER BY p.due_date ASC LIMIT 1`,
       [cycleData.id]
     );
     const currentPeriodData = current_period.rows[0];
@@ -259,8 +260,8 @@ router.get('/circle', async (req, res, next) => {
 router.post('/contribute', async (req, res, next) => {
   try {
     const { user_token, circle_id, period_date } = req.body;
-    if (!user_token || !circle_id || !period_date) {
-      return res.status(400).json({ error: 'User_token, Circle_id or Period_date invalid' });
+    if (!user_token || !circle_id) {
+      return res.status(400).json({ error: 'User_token or Circle_id invalid' });
     }
 
     const tokenResult = await db.select('user_token', { token: user_token }, 'user_id');
@@ -279,17 +280,33 @@ router.post('/contribute', async (req, res, next) => {
     }
     const cycle_id = cycleInfo.rows[0].id;
 
-    // Find period by cycle and date
+    // Find current period (period without payout)
     const periodInfo = await db.query(
-      `SELECT id FROM period WHERE cycle_id = $1 AND TO_CHAR(due_date, 'YYYY-MM-DD') = $2 AND valid = true LIMIT 1`,
-      [cycle_id, period_date]
+      `SELECT p.id, p.due_date FROM period p
+       LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
+       WHERE p.cycle_id = $1 AND p.valid = true AND po.id IS NULL
+       ORDER BY p.due_date ASC LIMIT 1`,
+      [cycle_id]
     );
     if (!periodInfo.rows || periodInfo.rows.length === 0) {
-      return res.status(404).json({ error: 'Period not found for the given date' });
+      return res.status(404).json({ error: 'No active period found for this cycle' });
     }
     const period_id = periodInfo.rows[0].id;
+    const actual_period_date = periodInfo.rows[0].due_date;
 
-    await db.insert('contribution', { period_id: period_id, user_id: user_id, for_user_id: user_id, contribution_date: period_date });
+    // Check if user has already paid for this period
+    const existingContribution = await db.query(
+      `SELECT id FROM contribution WHERE period_id = $1 AND user_id = $2 AND valid = true`,
+      [period_id, user_id]
+    );
+    if (existingContribution.rows && existingContribution.rows.length > 0) {
+      return res.status(400).json({ error: 'You have already paid for this period' });
+    }
+
+    // Use the actual period date from DB, or the provided date
+    const contribution_date = actual_period_date || period_date || new Date().toISOString().split('T')[0];
+
+    await db.insert('contribution', { period_id: period_id, user_id: user_id, for_user_id: user_id, contribution_date: contribution_date });
 
     res.json({ success: true });
   }
@@ -301,8 +318,8 @@ router.post('/contribute', async (req, res, next) => {
 router.post('/auction', async (req, res, next) => {
   try {
     const { user_token, circle_id, period_date, ammount } = req.body;
-    if (!user_token || !circle_id || !period_date || !ammount) {
-      return res.status(400).json({ error: 'User_token, Circle_id, Period_date or Ammount invalid' });
+    if (!user_token || !circle_id || !ammount) {
+      return res.status(400).json({ error: 'User_token, Circle_id or Ammount invalid' });
     }
 
     const tokenResult = await db.select('user_token', { token: user_token }, 'user_id');
@@ -321,21 +338,28 @@ router.post('/auction', async (req, res, next) => {
     }
     const cycle_id = cycleInfo.rows[0].id;
 
-    // Find period by cycle and date
+    // Find current period (period without payout)
     const periodInfo = await db.query(
-      `SELECT id FROM period WHERE cycle_id = $1 AND TO_CHAR(due_date - 1, 'YYYY-MM-DD') = $2 AND valid = true LIMIT 1`,
-      [cycle_id, period_date]
+      `SELECT p.id, p.due_date FROM period p
+       LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
+       WHERE p.cycle_id = $1 AND p.valid = true AND po.id IS NULL
+       ORDER BY p.due_date ASC LIMIT 1`,
+      [cycle_id]
     );
     if (!periodInfo.rows || periodInfo.rows.length === 0) {
-      return res.status(404).json({ error: 'Period not found for the given date' });
+      return res.status(404).json({ error: 'No active period found for this cycle' });
     }
     const period_id = periodInfo.rows[0].id;
+    const actual_period_date = periodInfo.rows[0].due_date;
+
+    // Use the actual period date from DB, or the provided date
+    const contribution_date = actual_period_date || period_date || new Date().toISOString().split('T')[0];
 
     // Invalidate all previous bids for this user and period
     await db.update('auction', { valid: false }, { period_id: period_id, user_id: user_id });
 
     // Insert new bid
-    await db.insert('auction', { period_id: period_id, user_id: user_id, contribution_date: period_date, ammount: ammount });
+    await db.insert('auction', { period_id: period_id, user_id: user_id, contribution_date: contribution_date, ammount: ammount });
 
     res.json({ success: true });
   }

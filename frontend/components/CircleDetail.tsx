@@ -240,7 +240,7 @@ export default function CircleDetail({
               <span className="text-gray-600">Next Due:</span>
               <span className="ml-2 font-semibold text-gray-900">{nextDueDate}</span>
             </div>
-            {!userHasPaid && amountOwed > 0 && (
+            {!userHasPaid && amountOwed > 0 && nextDueDate && (
               <div className='flex items-center'>
                 <button
                   onClick={handlePayment}
@@ -479,7 +479,7 @@ export default function CircleDetail({
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-gray-600">
                                 Bid: {bid.bidAmount} CHF • Net Payout: {netPayout} CHF
                               </div>
                               <div className="text-xs text-gray-400">
@@ -489,7 +489,7 @@ export default function CircleDetail({
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-indigo-600">{bid.bidAmount} CHF</div>
-                            <div className="text-xs text-gray-500">bid amount</div>
+                            <div className="text-xs text-gray-600">bid amount</div>
                           </div>
                         </div>
                       );
@@ -623,9 +623,9 @@ export default function CircleDetail({
                 placeholder="Enter amount"
                 min={circleData.currentAuction.currentHighestBid + 1}
                 max={circleData.currentAuction.payoutAmount - 1}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 You will receive {circleData.currentAuction.payoutAmount} - {bidAmount || 0} CHF = CHF
                 {circleData.currentAuction.payoutAmount - (parseFloat(bidAmount) || 0)}
               </p>

@@ -169,19 +169,23 @@ INSERT INTO payout (period_id, user_id) VALUES
 -- ============================================
 
 -- Période 4 du Cycle 2 (Famille Martin, mode enchères)
+-- Payout total = 150 CHF × 4 membres = 600 CHF
+-- Les enchères doivent être < 600 CHF
 INSERT INTO auction (period_id, user_id, contribution_date, ammount) VALUES
-(4, 1, '2026-05-01', 950.00),  -- Alice enchérit à 950€
-(4, 2, '2026-05-01', 920.00),  -- Bob enchérit à 920€
-(4, 3, '2026-05-01', 980.00);  -- Charlie enchérit à 980€ (gagne)
+(4, 1, '2026-05-01', 450.00),  -- Alice enchérit à 450 CHF (reçoit 150 CHF net)
+(4, 2, '2026-05-01', 420.00),  -- Bob enchérit à 420 CHF (reçoit 180 CHF net)
+(4, 3, '2026-05-01', 480.00);  -- Charlie enchérit à 480 CHF (gagne, reçoit 120 CHF net)
 
 -- Période 5 du Cycle 2
 INSERT INTO auction (period_id, user_id, contribution_date, ammount) VALUES
-(5, 1, '2026-06-01', 900.00),  -- Alice enchérit à 900€
-(5, 2, '2026-06-01', 850.00);  -- Bob enchérit à 850€ (gagne avec l'offre la plus basse)
+(5, 1, '2026-06-01', 400.00),  -- Alice enchérit à 400 CHF (reçoit 200 CHF net)
+(5, 2, '2026-06-01', 350.00);  -- Bob enchérit à 350 CHF (gagne, reçoit 250 CHF net)
 
 -- Période 6 du Cycle 3 (Collègues Bureau)
+-- Payout total = 200 CHF × 4 membres = 800 CHF
+-- Les enchères doivent être < 800 CHF
 INSERT INTO auction (period_id, user_id, contribution_date, ammount) VALUES
-(6, 2, '2026-03-05', 1500.00),
-(6, 1, '2026-03-05', 1450.00),  -- Alice gagne
-(6, 4, '2026-03-06', 1550.00),
-(6, 5, '2026-03-07', 1600.00);
+(6, 2, '2026-03-05', 600.00),  -- Bob enchérit à 600 CHF (reçoit 200 CHF net)
+(6, 1, '2026-03-05', 550.00),  -- Alice enchérit à 550 CHF (gagne, reçoit 250 CHF net)
+(6, 4, '2026-03-06', 650.00),  -- Diana enchérit à 650 CHF (reçoit 150 CHF net)
+(6, 5, '2026-03-07', 700.00);  -- Eve enchérit à 700 CHF (reçoit 100 CHF net)

@@ -232,12 +232,17 @@ const api = {
       await new Promise(resolve => setTimeout(resolve, 800));
       return { success: true, message: 'Payment successful' };
     } else {
+      if (!periodDate) {
+        return { success: false, message: 'Missing period date' };
+      }
+      const normalizedDate = /^\d{4}-\d{2}-\d{2}$/.test(periodDate) ? periodDate : new Date(periodDate).toISOString().split('T')[0];
+      
       const res = await fetch(
         `${BASE_URL}/circle/contribute`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_token: userToken, circle_id: circleId, period_date: periodDate })
+          body: JSON.stringify({ user_token: userToken, circle_id: circleId, period_date: normalizedDate })
         }
       );
       return res.json();

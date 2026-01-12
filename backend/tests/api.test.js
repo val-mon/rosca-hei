@@ -376,9 +376,9 @@ describe('Circle API', () => {
     test('POST /circle/contribute - missing params should return 400', async () => {
         const res = await request(app)
             .post('/circle/contribute')
-            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1 });
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' });
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toBe('User_token, Circle_id or Period_date invalid');
+        expect(res.body.error).toBe('User_token or Circle_id invalid');
     });
 
     // auction tests
@@ -422,9 +422,9 @@ describe('Circle API', () => {
     test('POST /circle/auction - missing params should return 400', async () => {
         const res = await request(app)
             .post('/circle/auction')
-            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1, period_date: '2024-05-01' });
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1 });
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toBe('User_token, Circle_id, Period_date or Ammount invalid');
+        expect(res.body.error).toBe('User_token, Circle_id or Ammount invalid');
     });
 
     // kick_member tests
@@ -654,31 +654,31 @@ describe('Admin API', () => {
         expect(res.body.circles.length).toBe(3);
 
         // verify Famille Martin data
-        const familleMartin = res.body.circles.find(c => c.circle_name === 'Famille Martin');
+        const familleMartin = res.body.circles.find(c => c.name === 'Famille Martin');
         expect(familleMartin).toBeDefined();
         expect(familleMartin.creator).toBe('Alice');
         expect(familleMartin.nbr_members).toBe(4); // Alice, Bob, Charlie, ValMon
         expect(familleMartin.progress).toBe(5); // 3 periods (cycle1) + 2 periods (cycle2)
         expect(familleMartin.total_funds).toBe(1000); // cycle1 (100*4) + cycle2 (150*4)
-        expect(familleMartin.mode).toBe('auction'); // last cycle (cycle2) has auction_mode=true
+        expect(familleMartin.payoutMode).toBe('auction'); // last cycle (cycle2) has auction_mode=true
 
         // verify Collègues Bureau data
-        const collegues = res.body.circles.find(c => c.circle_name === 'Collègues Bureau');
+        const collegues = res.body.circles.find(c => c.name === 'Collègues Bureau');
         expect(collegues).toBeDefined();
         expect(collegues.creator).toBe('Bob');
         expect(collegues.nbr_members).toBe(4); // Bob, Alice, Diana, Eve
         expect(collegues.progress).toBe(4); // 4 periods
         expect(collegues.total_funds).toBe(800); // cycle3 (200*4)
-        expect(collegues.mode).toBe('auction'); // cycle3 has auction_mode=true
+        expect(collegues.payoutMode).toBe('auction'); // cycle3 has auction_mode=true
 
         // verify Amis Université data
-        const amisUni = res.body.circles.find(c => c.circle_name === 'Amis Université');
+        const amisUni = res.body.circles.find(c => c.name === 'Amis Université');
         expect(amisUni).toBeDefined();
         expect(amisUni.creator).toBe('Charlie');
         expect(amisUni.nbr_members).toBe(4); // Charlie, Diana, Eve, ValMon
         expect(amisUni.progress).toBe(2); // 2 periods
         expect(amisUni.total_funds).toBe(200); // cycle4 (50*4)
-        expect(amisUni.mode).toBe('standard'); // cycle4 has auction_mode=false
+        expect(amisUni.payoutMode).toBe('random'); // cycle4 has auction_mode=false
     });
 
     test('GET /admin/circles - missing token should return 400', async () => {

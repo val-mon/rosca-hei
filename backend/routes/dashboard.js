@@ -30,21 +30,24 @@ router.get('/userinfo', async (req, res, next) => {
           (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id) as member_count,
           cm.is_admin,
           (SELECT p.due_date FROM period p
+           LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
            JOIN cycle cy ON p.cycle_id = cy.id
-           WHERE cy.circle_id = c.id AND p.due_date >= CURRENT_DATE
+           WHERE cy.circle_id = c.id AND p.valid = true AND po.id IS NULL
            ORDER BY p.due_date ASC LIMIT 1) as next_due_date,
           (SELECT p.id FROM period p
+           LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
            JOIN cycle cy ON p.cycle_id = cy.id
-           WHERE cy.circle_id = c.id AND p.due_date >= CURRENT_DATE
+           WHERE cy.circle_id = c.id AND p.valid = true AND po.id IS NULL
            ORDER BY p.due_date ASC LIMIT 1) as next_period_id,
           EXISTS(
             SELECT 1 FROM contribution cont
             WHERE cont.period_id = (
               SELECT p.id FROM period p
+              LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
               JOIN cycle cy ON p.cycle_id = cy.id
-              WHERE cy.circle_id = c.id AND p.due_date >= CURRENT_DATE
+              WHERE cy.circle_id = c.id AND p.valid = true AND po.id IS NULL
               ORDER BY p.due_date ASC LIMIT 1
-            ) AND cont.user_id = $1
+            ) AND cont.user_id = $1 AND cont.valid = true
           ) as user_has_paid
         FROM circle c
         JOIN circle_member cm ON c.id = cm.circle_id

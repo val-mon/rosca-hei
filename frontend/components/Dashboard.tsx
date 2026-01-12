@@ -22,17 +22,18 @@ interface DashboardProps {
   activeAuctions: ActiveAuction[];
   onSelectCircle: (circleId: number) => void;
   onLogout: () => void;
+  onPayment: (circleId: number, periodDate: string) => Promise<void>;
   onCreateCircle: (name: string) => void;
   onJoinCircle: (joinCode: string) => void;
   user: User;
 }
 
-export default function Dashboard({ circles, activeAuctions, onSelectCircle, onLogout, onCreateCircle, onJoinCircle, user }: DashboardProps) {
+export default function Dashboard({ circles, activeAuctions, onSelectCircle, onPayment, onLogout, onCreateCircle, onJoinCircle, user }: DashboardProps) {
   const [showCreateCircleModal, setShowCreateCircleModal] = useState(false);
   const [showJoinCircleModal, setShowJoinCircleModal] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [circleName, setCircleName] = useState('');
-  const totalDueNext2Weeks = circles.reduce((sum, circle) => {
+  const totalDueNext2Weeks = (circles || []).reduce((sum, circle) => {
     const dueDate = new Date(circle.nextDueDate);
     const today = new Date();
     const twoWeeksFromNow = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
@@ -42,7 +43,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onL
     return sum;
   }, 0);
 
-  const totalPayoutNext2Weeks = circles.reduce((sum, circle) => sum + circle.upcomingPayout, 0);
+  const totalPayoutNext2Weeks = (circles || []).reduce((sum, circle) => sum + circle.upcomingPayout, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -108,7 +109,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onL
           </div>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {circles.map(circle => (
+          {(circles || []).map(circle => (
             <div
               key={circle.id}
               onClick={() => onSelectCircle(circle.id)}
@@ -151,11 +152,11 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onL
                 )}
               </div>
 
-              {!circle.userHasPaid && circle.amountOwed > 0 && (
+              {!circle.userHasPaid && circle.amountOwed > 0 && circle.nextDueDate && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    console.log('Pay contribution for circle:', circle.id);
+                    onPayment(circle.id, circle.nextDueDate);
                   }}
                   className="w-full mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium cursor-pointer"
                 >
