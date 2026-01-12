@@ -7,13 +7,13 @@
 -- ============================================
 
 INSERT INTO "user" (email, username, privacy_consent, created_at) VALUES
-('alice@example.com', 'Alice', true, '2026-01-15 10:00:00'),
-('bob@example.com', 'Bob', true, '2026-01-16 11:30:00'),
-('charlie@example.com', 'Charlie', true, '2026-01-17 14:00:00'),
-('diana@example.com', 'Diana', false, '2026-02-01 09:00:00'),
-('eve@example.com', 'Eve', true, '2026-02-05 16:00:00'),
-('admin@rosca-hei.com', 'Admin', true, '2026-01-01 08:00:00'),
-('vmonod5@gmail.com', 'ValMon', true, '2026-01-08 16:33:33');
+('alice@example.com', 'Alice', true, '2025-11-15 10:00:00'),
+('bob@example.com', 'Bob', true, '2025-11-20 11:30:00'),
+('charlie@example.com', 'Charlie', true, '2025-11-25 14:00:00'),
+('diana@example.com', 'Diana', false, '2025-12-05 09:00:00'),
+('eve@example.com', 'Eve', true, '2025-12-10 16:00:00'),
+('admin@rosca-hei.com', 'Admin', true, '2025-10-01 08:00:00'),
+('vmonod5@gmail.com', 'ValMon', true, '2026-01-05 16:33:33');
 
 -- ============================================
 -- USER TOKENS (tokens de session)
@@ -88,26 +88,26 @@ INSERT INTO cycle (circle_id, auction_mode, contribution_amount) VALUES
 
 -- Cycle 1 (Famille Martin, normal) : 3 périodes
 INSERT INTO period (cycle_id, due_date) VALUES
-(1, '2026-03-15'),
-(1, '2026-04-15'),
-(1, '2026-05-15');
+(1, '2025-11-15'),
+(1, '2025-12-15'),
+(1, '2026-01-10');
 
 -- Cycle 2 (Famille Martin, enchères) : 2 périodes
 INSERT INTO period (cycle_id, due_date) VALUES
-(2, '2026-05-01'),
-(2, '2026-06-01');
+(2, '2026-01-06'),
+(2, '2026-01-13');
 
 -- Cycle 3 (Collègues Bureau) : 4 périodes
 INSERT INTO period (cycle_id, due_date) VALUES
-(3, '2026-03-15'),
-(3, '2026-04-15'),
-(3, '2026-05-15'),
-(3, '2026-06-15');
+(3, '2025-11-20'),
+(3, '2025-12-20'),
+(3, '2026-01-05'),
+(3, '2026-01-13');
 
 -- Cycle 4 (Amis Université) : 2 périodes
 INSERT INTO period (cycle_id, due_date) VALUES
-(4, '2026-03-01'),
-(4, '2026-04-01');
+(4, '2025-12-01'),
+(4, '2026-01-08');
 
 -- ============================================
 -- CONTRIBUTIONS (paiements)
@@ -115,22 +115,22 @@ INSERT INTO period (cycle_id, due_date) VALUES
 
 -- Période 1 du Cycle 1 (Famille Martin)
 INSERT INTO contribution (period_id, user_id, for_user_id, contribution_date, annotation) VALUES
-(1, 1, 1, '2026-03-01', 'Contribution mensuelle Mars'),
-(1, 2, 1, '2026-03-01', 'Contribution mensuelle Mars'),
-(1, 3, 1, '2026-03-02', 'Contribution mensuelle Mars - en retard');
+(1, 1, 1, '2025-11-10', 'Contribution mensuelle Novembre'),
+(1, 2, 1, '2025-11-11', 'Contribution mensuelle Novembre'),
+(1, 3, 1, '2025-11-18', 'Contribution mensuelle Novembre - en retard');
 
 -- Période 2 du Cycle 1
 INSERT INTO contribution (period_id, user_id, for_user_id, contribution_date, annotation) VALUES
-(2, 1, 2, '2026-04-01', 'Contribution mensuelle Avril'),
-(2, 2, 2, '2026-04-01', 'Contribution mensuelle Avril'),
-(2, 3, 2, '2026-04-01', 'Contribution mensuelle Avril');
+(2, 1, 2, '2025-12-10', 'Contribution mensuelle Décembre'),
+(2, 2, 2, '2025-12-10', 'Contribution mensuelle Décembre'),
+(2, 3, 2, '2025-12-10', 'Contribution mensuelle Décembre');
 
 -- Période 1 du Cycle 3 (Collègues Bureau)
 INSERT INTO contribution (period_id, user_id, for_user_id, contribution_date, annotation) VALUES
-(6, 2, 1, '2026-03-05', 'Cotisation équipe Q1'),
-(6, 1, 1, '2026-03-05', 'Cotisation équipe Q1'),
-(6, 4, 1, '2026-03-06', 'Cotisation équipe Q1'),
-(6, 5, 1, '2026-03-07', 'Cotisation équipe Q1 - retard');
+(6, 2, 1, '2025-11-18', 'Cotisation équipe Q1'),
+(6, 1, 1, '2025-11-18', 'Cotisation équipe Q1'),
+(6, 4, 1, '2025-11-19', 'Cotisation équipe Q1'),
+(6, 5, 1, '2025-11-22', 'Cotisation équipe Q1 - retard');
 
 
 -- ============================================
@@ -138,7 +138,7 @@ INSERT INTO contribution (period_id, user_id, for_user_id, contribution_date, an
 -- ============================================
 -- Ajout d'un code spécial pour l'admin
 INSERT INTO authentification (user_id, code, expiration) VALUES
-(6, 123987, '2029-03-07');
+(6, 123987, '2026-01-13 23:59:59');
 
 -- ============================================
 -- PENALTIES (pénalités pour retards)
@@ -168,9 +168,21 @@ INSERT INTO payout (period_id, user_id) VALUES
 INSERT INTO payout (period_id, user_id) VALUES
 (6, 1);
 
+-- Bob reçoit le payout de la période 7 (Collègues)
+INSERT INTO payout (period_id, user_id) VALUES
+(7, 2);
+
+-- Diana reçoit le payout de la période 8 (Collègues)
+INSERT INTO payout (period_id, user_id) VALUES
+(8, 4);
+
 -- Diana reçoit le payout de la période 10 (Amis Université)
 INSERT INTO payout (period_id, user_id) VALUES
 (10, 4);
+
+-- Charlie reçoit le payout de la période 4 (Famille Martin, enchères)
+INSERT INTO payout (period_id, user_id) VALUES
+(4, 3);
 
 -- ============================================
 -- AUCTIONS (enchères pour les cycles en mode auction)
@@ -180,20 +192,20 @@ INSERT INTO payout (period_id, user_id) VALUES
 -- Payout total = 150 CHF × 4 membres = 600 CHF
 -- Les enchères doivent être < 600 CHF
 INSERT INTO auction (period_id, user_id, contribution_date, ammount) VALUES
-(4, 1, '2026-05-01', 450.00),  -- Alice enchérit à 450 CHF (reçoit 150 CHF net)
-(4, 2, '2026-05-01', 420.00),  -- Bob enchérit à 420 CHF (reçoit 180 CHF net)
-(4, 3, '2026-05-01', 480.00);  -- Charlie enchérit à 480 CHF (gagne, reçoit 120 CHF net)
+(4, 1, '2026-01-06', 450.00),  -- Alice enchérit à 450 CHF (reçoit 150 CHF net)
+(4, 2, '2026-01-06', 420.00),  -- Bob enchérit à 420 CHF (reçoit 180 CHF net)
+(4, 3, '2026-01-06', 480.00);  -- Charlie enchérit à 480 CHF (gagne, reçoit 120 CHF net)
 
 -- Période 5 du Cycle 2
 INSERT INTO auction (period_id, user_id, contribution_date, ammount) VALUES
-(5, 1, '2026-06-01', 400.00),  -- Alice enchérit à 400 CHF (reçoit 200 CHF net)
-(5, 2, '2026-06-01', 350.00);  -- Bob enchérit à 350 CHF (gagne, reçoit 250 CHF net)
+(5, 1, '2026-01-13', 400.00),  -- Alice enchérit à 400 CHF (reçoit 200 CHF net)
+(5, 2, '2026-01-13', 350.00);  -- Bob enchérit à 350 CHF (gagne, reçoit 250 CHF net)
 
 -- Période 6 du Cycle 3 (Collègues Bureau)
 -- Payout total = 200 CHF × 4 membres = 800 CHF
 -- Les enchères doivent être < 800 CHF
 INSERT INTO auction (period_id, user_id, contribution_date, ammount) VALUES
-(6, 2, '2026-03-05', 600.00),  -- Bob enchérit à 600 CHF (reçoit 200 CHF net)
-(6, 1, '2026-03-05', 550.00),  -- Alice enchérit à 550 CHF (gagne, reçoit 250 CHF net)
-(6, 4, '2026-03-06', 650.00),  -- Diana enchérit à 650 CHF (reçoit 150 CHF net)
-(6, 5, '2026-03-07', 700.00);  -- Eve enchérit à 700 CHF (reçoit 100 CHF net)
+(6, 2, '2025-11-20', 600.00),  -- Bob enchérit à 600 CHF (reçoit 200 CHF net)
+(6, 1, '2025-11-20', 550.00),  -- Alice enchérit à 550 CHF (gagne, reçoit 250 CHF net)
+(6, 4, '2025-11-21', 650.00),  -- Diana enchérit à 650 CHF (reçoit 150 CHF net)
+(6, 5, '2025-11-22', 700.00);  -- Eve enchérit à 700 CHF (reçoit 100 CHF net)
