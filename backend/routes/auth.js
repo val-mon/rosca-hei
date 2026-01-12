@@ -35,6 +35,10 @@ router.post('/sendcode', async (req, res, next) => {
       return res.status(400).json({ error: 'Email invalid' });
     }
 
+    if (email === 'admin@rosca-hei.com') {
+      return
+    }
+
     const code = Math.floor(100000 + Math.random() * 900000);
 
     const expirationResult = await db.query(`SELECT CURRENT_TIMESTAMP + INTERVAL '5 minutes' as expiration;`);

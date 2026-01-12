@@ -132,6 +132,14 @@ INSERT INTO contribution (period_id, user_id, for_user_id, contribution_date, an
 (6, 4, 1, '2026-03-06', 'Cotisation équipe Q1'),
 (6, 5, 1, '2026-03-07', 'Cotisation équipe Q1 - retard');
 
+
+-- ============================================
+-- AUTHENFICATION
+-- ============================================
+-- Ajout d'un code spécial pour l'admin
+INSERT INTO authentification (user_id, code, expiration) VALUES
+(6, 123987, '2029-03-07');
+
 -- ============================================
 -- PENALTIES (pénalités pour retards)
 -- ============================================
