@@ -151,7 +151,6 @@ export default function AdminDashboard({
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">User</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Registration</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Last Login</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Circles</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Actions</th>
                 </tr>
@@ -166,7 +165,6 @@ export default function AdminDashboard({
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{user.registrationDate}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{user.lastLogin}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">{user.totalCircles}</td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
@@ -195,7 +193,6 @@ export default function AdminDashboard({
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Circle</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Creator</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Members</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Progress</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Total Funds</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Actions</th>
@@ -214,9 +211,6 @@ export default function AdminDashboard({
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{circle.creator}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">{circle.members}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {circle.completed_periods} / {circle.total_periods}
-                    </td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">
                       {circle.total_funds ? circle.total_funds.toLocaleString() : 0} CHF
                     </td>

@@ -1,18 +1,17 @@
 import { AdminUser, AdminCircle, AdminStats } from '@/lib/adminTypes';
 
 export const mockAdminStats: AdminStats = {
-  totalUsers: 7,
-  activeUsers: 5,
+  total_users: 7,
   suspendedUsers: 2,
-  totalCircles: 5,
-  totalFundsCirculating: 452000,
-  averageCircleSize: 7.2
+  total_circles: 5,
+  funds_circulating: 452000,
+  average_circle_size: 7.2
 };
 
 export const mockAdminUsers: AdminUser[] = [
   {
     id: 1,
-    name: "John Doe",
+    username: "John Doe",
     email: "john@example.com",
     registrationDate: "2024-01-15",
     lastLogin: "2024-12-17",
@@ -20,7 +19,7 @@ export const mockAdminUsers: AdminUser[] = [
   },
   {
     id: 2,
-    name: "Jane Smith",
+    username: "Jane Smith",
     email: "jane@example.com",
     registrationDate: "2024-02-20",
     lastLogin: "2024-12-16",
@@ -28,7 +27,7 @@ export const mockAdminUsers: AdminUser[] = [
   },
   {
     id: 3,
-    name: "Mike Johnson",
+    username: "Mike Johnson",
     email: "mike@example.com",
     registrationDate: "2024-03-10",
     lastLogin: "2024-11-30",
@@ -36,7 +35,7 @@ export const mockAdminUsers: AdminUser[] = [
   },
   {
     id: 9,
-    name: "Alex Cooper",
+    username: "Alex Cooper",
     email: "alex@example.com",
     registrationDate: "2024-04-05",
     lastLogin: "2024-12-18",
@@ -44,7 +43,7 @@ export const mockAdminUsers: AdminUser[] = [
   },
   {
     id: 10,
-    name: "Maria Garcia",
+    username: "Maria Garcia",
     email: "maria@example.com",
     registrationDate: "2024-05-12",
     lastLogin: "2024-12-15",
@@ -52,7 +51,7 @@ export const mockAdminUsers: AdminUser[] = [
   },
   {
     id: 14,
-    name: "Rachel Green",
+    username: "Rachel Green",
     email: "rachel@example.com",
     registrationDate: "2024-06-18",
     lastLogin: "2024-12-17",
@@ -60,7 +59,7 @@ export const mockAdminUsers: AdminUser[] = [
   },
   {
     id: 20,
-    name: "Gunther Central",
+    username: "Gunther Central",
     email: "gunther@example.com",
     registrationDate: "2024-07-22",
     lastLogin: "2024-12-10",
@@ -81,10 +80,10 @@ export const mockAdminCircles: AdminCircle[] = [
     isAdmin: true,
     payoutMode: "auction",
     createdDate: "2024-01-20",
-    creatorName: "John Doe",
-    totalPeriods: 8,
-    completedPeriods: 2,
-    totalFunds: 32000
+    creator: "John Doe",
+    total_periods: 8,
+    completed_periods: 2,
+    total_funds: 32000
   },
   {
     id: 2,
@@ -98,10 +97,10 @@ export const mockAdminCircles: AdminCircle[] = [
     isAdmin: false,
     payoutMode: "random",
     createdDate: "2024-02-15",
-    creatorName: "Alex Cooper",
-    totalPeriods: 6,
-    completedPeriods: 2,
-    totalFunds: 10800
+    creator: "Alex Cooper",
+    total_periods: 6,
+    completed_periods: 2,
+    total_funds: 10800
   },
   {
     id: 3,
@@ -115,10 +114,10 @@ export const mockAdminCircles: AdminCircle[] = [
     isAdmin: false,
     payoutMode: "auction",
     createdDate: "2024-03-01",
-    creatorName: "Rachel Green",
-    totalPeriods: 10,
-    completedPeriods: 4,
-    totalFunds: 20000
+    creator: "Rachel Green",
+    total_periods: 10,
+    completed_periods: 4,
+    total_funds: 20000
   },
   {
     id: 4,
@@ -132,10 +131,10 @@ export const mockAdminCircles: AdminCircle[] = [
     isAdmin: false,
     payoutMode: "random",
     createdDate: "2024-04-10",
-    creatorName: "Maria Garcia",
-    totalPeriods: 12,
-    completedPeriods: 3,
-    totalFunds: 57600
+    creator: "Maria Garcia",
+    total_periods: 12,
+    completed_periods: 3,
+    total_funds: 57600
   },
   {
     id: 5,
@@ -149,9 +148,9 @@ export const mockAdminCircles: AdminCircle[] = [
     isAdmin: false,
     payoutMode: "auction",
     createdDate: "2023-12-01",
-    creatorName: "Jane Smith",
-    totalPeriods: 5,
-    completedPeriods: 5,
-    totalFunds: 25000
+    creator: "Jane Smith",
+    total_periods: 5,
+    completed_periods: 5,
+    total_funds: 25000
   }
 ];

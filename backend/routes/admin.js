@@ -21,7 +21,7 @@ router.get('/globalstats', async (req, res, next) => {
 
     // get total users (where valid = true)
     const totalUsersResult = await db.select('"user"', { valid: 'true' }, 'COUNT(*)')
-    const total_users = parseInt(totalUsersResult[0].count);
+    const total_users = parseInt(totalUsersResult[0].count) - 1;
 
     // get total circles (where valid = true)
     const totalCirclesResult = await db.select('circle', { valid: 'true' }, 'COUNT(*)')
@@ -53,13 +53,13 @@ router.get('/globalstats', async (req, res, next) => {
         GROUP BY cm.circle_id
       ) as circle_sizes`
     );
-    const avg_circle_size = avgSizeResult.rows[0].avg ? parseFloat(avgSizeResult.rows[0].avg) : 0;
+    const average_circle_size = avgSizeResult.rows[0].avg ? parseFloat(avgSizeResult.rows[0].avg) : 0;
 
     res.json({
       total_users,
       total_circles,
       funds_circulating,
-      avg_circle_size
+      average_circle_size
     });
   }
   catch (err) {
@@ -90,18 +90,18 @@ router.get('/users', async (req, res, next) => {
         u.id,
         u.username as name,
         u.email,
-        (SELECT MAX(ut.id) FROM user_token ut WHERE ut.user_id = u.id) as last_login,
+        u.created_at,
         (SELECT COUNT(*) FROM circle_member cm WHERE cm.user_id = u.id AND cm.valid = true) as nbr_circles,
         (SELECT COUNT(*) > 0 FROM penalty p WHERE p.user_id = u.id AND p.waived = 0) as flaged
       FROM "user" u
-      WHERE u.valid = true
+      WHERE u.valid = true and u.email <> 'admin@rosca-hei.com'
       ORDER BY u.id`
     );
     const users = usersResult.rows.map(user => ({
       username: user.name,
       email: user.email,
-      last_login: user.last_login,
-      nbr_circles: parseInt(user.nbr_circles),
+      totalCircles: parseInt(user.nbr_circles),
+      registrationDate : user.created_at,
       flaged: user.flaged
     }));
 
@@ -185,7 +185,7 @@ router.get('/circles', async (req, res, next) => {
       id: circle.id,
       name: circle.circle_name,
       creator: circle.creator,
-      nbr_members: parseInt(circle.nbr_members),
+      members: parseInt(circle.nbr_members),
       progress: parseInt(circle.progress),
       total_funds: parseFloat(circle.total_funds),
       payoutMode: circle.mode ? 'auction' : 'random'
