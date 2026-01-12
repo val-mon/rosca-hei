@@ -2,23 +2,19 @@
 ```
 🌐 Site
 │
-├── 🏠 Home Page
-│   ├── 🔐 Login Popup
-│   └── 📝 Signup Popup
+├── Home Page
+│   ├── Login Popup
+│   └── Signup Popup
 │
-├── 🕵🏻 System Admin Page
+├── Admin System Page
 │
-├── 📊 Dashboard Page
-│   └── ➕ Create Circle Popup
+├── Dashboard Page
+│   ├── Join Circle Popup
+│   └── Create Circle Popup
 │
-└── 👥 Circle Page
-    ├── 🛠️ Admin Actions
-    │   ├── ⚙️ Manage Popup
-    │   ├── 🚫 Waive Popup
-    │   └── 🚩 Flag Popup
-    │
-    ├── 💰 Contribution Popup
-    └── 🔨 Auction Popup
+└── Circle Page
+    ├── (Admin) Start Circle Popup
+    └── Place Bid Popup
 ```
 
 # RDB
@@ -162,92 +158,183 @@ Ref: "auction"."user_id" < "user"."id"
 
 # API
 ```js
-// INFO
 /*
-	HTTP QUERIES : GET, POST, PUT (and DELETE)
+	HTTP QUERIES : GET, POST
 	RETURN FORMAT : JSON
+	NOTE: All params are passed via query string for GET, body for POST
 */
 
-// CONNECTION
-get : "/create" (params : email, username, consent) -> user_token
-post : "/sendcode" (params : email)
-get : "/login" (params : email, onetime_code) -> user_token
-post : "/logout" (params : user_token)
+// CONNECTION (auth.js)
+get : "/create" (params : email, username, consent) -> {
+  success: true,
+  user_token,
+  user: { id, email, username }
+}
+post : "/sendcode" (params : email) -> { success: true, message }
+get : "/login" (params : email, onetime_code) -> {
+  success: true,
+  user_token,
+  user: { id, email, username }
+}
+post : "/logout" (params : user_token) -> { success: true, message }
 
-// DASHBOARD
+// DASHBOARD (dashboard.js)
 get : "/userinfo" (params : user_token) -> {
-	user_token,
-  user_id,
-	name,
-	email,
-	consent,
-	circles {
-		circle_id,
-		name, 
-		contribution_amount,
-		due_date,
-		payout_amount
-	}
+  user_token,
+  id,
+  username,
+  email,
+  privacy_consent,
+  circles [
+    {
+      id,
+      name,
+      members,
+      contributionAmount,
+      nextDueDate,
+      upcomingPayout,
+      userHasPaid,
+      amountOwed,
+      isAdmin,
+      payoutMode // 'auction' or 'random'
+    }
+  ]
 }
-post :"/create_circle" (params : user_id, circle_name)
-post :"/join_circle" (params : user_id, join_code)
+post : "/create_circle" (params : user_token, circle_name) -> {
+  success: true,
+  circle_id,
+  join_code
+}
+post : "/join_circle" (params : user_token, join_code) -> {
+  success: true,
+  circle_id
+}
+get : "/useractiveauctions" (params : user_token) -> {
+  auctions [
+    {
+      circle_id,
+      circle_name,
+      period_id,
+      payout_amount,
+      user_bid_amount,
+      current_highest_bid,
+      current_winner,
+      is_winning,
+      end_date
+    }
+  ]
+}
 
-// CIRCLE PAGE
+// CIRCLE PAGE (circle.js)
 get : "/circle" (params : user_token, circle_id) -> {
-	circle_id,
-	circle_name,
-  join_code,
-	contribution_amount,
-	members {
-		logged : bool,
-		isadmin : bool,
-    user_id,
-		member_name,
-		contribution_amount,
-		due_date,
-		penalties {
-			paid
-		}
-	}
-	periods {
-		date,
-		member_name
-	}
+  joinCode,
+  members [
+    {
+      id,
+      name,
+      email,
+      position,
+      hasPaid,
+      latePayments,
+      totalPenalties,
+      isFlagged,
+      flagReason,
+      hasReceivedPayout
+    }
+  ],
+  periods [
+    {
+      id,
+      startDate,
+      endDate,
+      recipient,
+      recipientId,
+      status, // 'current', 'upcoming', 'completed'
+      amount,
+      hasAuction
+    }
+  ],
+  hasCycle,
+  currentAuction: {
+    periodId,
+    startDate,
+    endDate,
+    payoutAmount,
+    currentHighestBid,
+    currentWinner,
+    bids [
+      {
+        id,
+        memberId,
+        memberName,
+        bidAmount,
+        timestamp,
+        isWinning
+      }
+    ],
+    hasUserBid,
+    userBidAmount,
+    isActive,
+    canUserBid
+  }
 }
-post : "/contribute" (params : user_id, circle_id, period_date)
-post : "/auction" (params : user_id, circle_id, period_date, amount)
+post : "/contribute" (params : user_token, circle_id, period_date) -> {
+  success: true
+}
+post : "/auction" (params : user_token, circle_id, period_date, ammount) -> {
+  success: true
+}
+post : "/change_settings" (params : user_token, circle_id, circle_name) -> {
+  success: true,
+  message
+}
+post : "/start_cycle" (params : user_token, circle_id, contribution_amount, payout_mode) -> {
+  success: true,
+  message,
+  cycle_id
+}
+post : "/kick_member" (params : user_token, circle_id, member_id) -> {
+  success: true,
+  message
+}
 
-post : "/flaguser" (params : user_id, circle_id)
-post : "/change_settings" (params : circle_id, name, contribution_amount, perdiod_duration, auction_mode)
-
-// ADMIN SYSTEM PAGE
+// ADMIN SYSTEM PAGE (admin.js)
 get : "/globalstats" (params : user_token) -> {
   total_users,
   total_circles,
   funds_circulating,
-  avg_circle_size
+  average_circle_size
 }
-
 get : "/users" (params : user_token) -> {
-	users{
-    name,
-	  email,
-	  last_login,
-    nbr_circles,
-    flaged
-  }
+  users [
+    {
+      username,
+      email,
+      totalCircles,
+      registrationDate,
+      flaged
+    }
+  ]
 }
-post : "/deleteuser" (params : user_token, email) // just toggle the valid to false
-
+post : "/deleteuser" (params : user_token, email) -> {
+  success: true,
+  message
+}
 get : "/circles" (params : user_token) -> {
-	circles {
-    circle_name,
-    creator,
-    nbr_members,
-    progress,
-    total_funds,
-    mode // status
-  }
+  circles [
+    {
+      id,
+      name,
+      creator,
+      members,
+      progress,
+      total_funds,
+      payoutMode // 'auction' or 'random'
+    }
+  ]
 }
-post : "/deletecircle" (params : user_token, circle_name) // also just toggle the valid to false
+post : "/deletecircle" (params : user_token, circle_id) -> {
+  success: true,
+  message
+}
 ```
