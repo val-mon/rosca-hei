@@ -136,7 +136,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onP
                 </div>
                 <div className="flex justify-between">
                   <span>Next Due:</span>
-                  <span className="font-medium text-gray-900">{circle.nextDueDate}</span>
+                  <span className="font-medium text-gray-900">{circle.nextDueDate.substring(0, 10)}</span>
                 </div>
                 {circle.upcomingPayout > 0 && (
                   <div className="flex justify-between pt-2 border-t">
@@ -247,7 +247,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onP
           </div>
         )}
 
-        {/* Active Auctions Section 
+        {/* Active Auctions Section */}
         {activeAuctions.length > 0 && (
           <div className="mb-8 gap-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
@@ -329,7 +329,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onP
               ))}
             </div>
           </div>
-        )}*/}
+        )}
       </div>
     </div>
   );

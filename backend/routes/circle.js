@@ -153,7 +153,7 @@ router.get('/circle', async (req, res, next) => {
 
     // Get periods with payout recipient name, matching frontend Period type
     const periodsData = await db.query(
-      `SELECT per.id, per.due_date, u.username AS recipient_name, po.user_id AS recipient_id
+      `SELECT per.id, per.due_date - 14 AS start_date, per.due_date AS end_date, u.username AS recipient_name, po.user_id AS recipient_id
       FROM period per
       LEFT JOIN payout po ON po.period_id = per.id AND po.valid = true
       LEFT JOIN "user" u ON u.id = po.user_id
@@ -164,22 +164,25 @@ router.get('/circle', async (req, res, next) => {
 
     const currentDate = new Date();
     const periods = periodsData.rows.map((period) => {
-      const periodDate = new Date(period.due_date);
+      const periodDate = new Date(period.start_date);
       let status;
       if (period.recipient_name) {
         status = 'completed';
       } else if (currentPeriodData && period.id === currentPeriodData.id) {
+        period.recipient_name = 'Not yet defined';
         status = 'current';
       } else if (periodDate > currentDate) {
+        period.recipient_name = 'Not yet defined';
         status = 'upcoming';
       } else {
+        period.recipient_name = 'Not yet defined';
         status = 'completed';
       }
 
       return {
         id: period.id,
-        startDate: period.due_date, // Using due_date as both start and end for now
-        endDate: period.due_date,
+        startDate: period.start_date,
+        endDate: period.end_date,
         recipient: period.recipient_name,
         recipientId: period.recipient_id,
         status: status,
@@ -457,11 +460,11 @@ router.post('/start_cycle', async (req, res, next) => {
       auction_mode: auctionMode
     });
 
-    // Create periods (one for each member, starting from today, weekly intervals)
+    // Create periods
     const today = new Date();
     for (let i = 0; i < memberCount; i++) {
       const dueDate = new Date(today);
-      dueDate.setDate(today.getDate() + (i * 7)); // Weekly periods
+      dueDate.setDate(today.getDate() + (i * 14));
       await db.insert('period', {
         cycle_id: cycle.id,
         due_date: dueDate.toISOString().split('T')[0]

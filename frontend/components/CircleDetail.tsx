@@ -238,7 +238,7 @@ export default function CircleDetail({
             </div>
             <div className='flex items-center'>
               <span className="text-gray-600">Next Due:</span>
-              <span className="ml-2 font-semibold text-gray-900">{nextDueDate}</span>
+              <span className="ml-2 font-semibold text-gray-900">{nextDueDate.substring(0, 10)}</span>
             </div>
             {!userHasPaid && amountOwed > 0 && nextDueDate && (
               <div className='flex items-center'>
@@ -557,7 +557,7 @@ export default function CircleDetail({
                     </div>
 
                     <div className="text-sm text-gray-600">
-                      {period.startDate} to {period.endDate}
+                      {period.startDate.substring(0, 10)} to {period.endDate.substring(0, 10)}
                     </div>
 
                     <div className="text-sm font-medium text-gray-900 mt-2">
@@ -566,7 +566,7 @@ export default function CircleDetail({
 
                     {period.hasAuction && period.auctionEndDate && (
                       <div className="text-xs text-purple-600 mt-1">
-                        Auction ends: {period.auctionEndDate}
+                        Auction ends: {period.auctionEndDate.substring(0, 10)}
                       </div>
                     )}
                   </div>
