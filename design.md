@@ -325,6 +325,7 @@ get : "/circles" (params : user_token) -> {
     {
       id,
       name,
+      createdDate,
       creator,
       members,
       progress,

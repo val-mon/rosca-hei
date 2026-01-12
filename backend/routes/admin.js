@@ -161,6 +161,7 @@ router.get('/circles', async (req, res, next) => {
       `SELECT
         c.id,
         c.name as circle_name,
+        TO_CHAR(c.modified_date, 'YYYY-MM-DD') as created_date,
         (SELECT u.username FROM "user" u
          JOIN circle_member cm ON cm.user_id = u.id
          WHERE cm.circle_id = c.id AND cm.is_admin = true
@@ -184,6 +185,7 @@ router.get('/circles', async (req, res, next) => {
     const circles = circlesResult.rows.map(circle => ({
       id: circle.id,
       name: circle.circle_name,
+      createdDate: circle.created_date,
       creator: circle.creator,
       members: parseInt(circle.nbr_members),
       progress: parseInt(circle.progress),
