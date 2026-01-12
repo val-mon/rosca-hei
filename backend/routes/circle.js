@@ -29,6 +29,9 @@ router.get('/circle', async (req, res, next) => {
       [parseInt(circle_id)]
     );
 
+    let joinCode = await db.select('circle', {id: circle_id}, 'join_code');
+    joinCode = joinCode[0].join_code;
+
     // If no active cycle exists, return empty data with hasCycle flag
     if (!cycle_info.rows || cycle_info.rows.length === 0) {
       // Get members without cycle-specific data
@@ -57,6 +60,7 @@ router.get('/circle', async (req, res, next) => {
       }));
 
       return res.json({
+        joinCode: joinCode,
         members: members,
         periods: [],
         hasCycle: false
@@ -190,9 +194,6 @@ router.get('/circle', async (req, res, next) => {
         hasAuction: cycleData.auction_mode
       };
     });
-
-    let joinCode = await db.select('circle', {id: circle_id}, 'join_code');
-    joinCode = joinCode[0].join_code;
 
     // Get current auction data if auction mode is enabled
     let currentAuction = null;

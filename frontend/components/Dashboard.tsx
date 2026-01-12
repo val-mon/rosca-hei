@@ -136,7 +136,7 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onP
                 </div>
                 <div className="flex justify-between">
                   <span>Next Due:</span>
-                  <span className="font-medium text-gray-900">{circle.nextDueDate.substring(0, 10)}</span>
+                  <span className="font-medium text-gray-900">{circle.nextDueDate?.substring(0, 10) ?? 'Hasn\'t started yet'}</span>
                 </div>
                 {circle.upcomingPayout > 0 && (
                   <div className="flex justify-between pt-2 border-t">

@@ -100,7 +100,7 @@ export default function AdminDashboard({
               <h3 className="text-sm font-semibold text-gray-600">Avg Circle Size</h3>
               <Users className="w-5 h-5 text-orange-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.average_circle_size}</p>
+            <p className="text-3xl font-bold text-gray-900">{stats.average_circle_size.toFixed(2)}</p>
             <p className="text-xs text-gray-500 mt-1">members per circle</p>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function AdminDashboard({
                         <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{user.registrationDate}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{user.registrationDate.substring(0, 10)}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">{user.totalCircles}</td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">

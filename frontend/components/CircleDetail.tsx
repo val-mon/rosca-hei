@@ -238,7 +238,7 @@ export default function CircleDetail({
             </div>
             <div className='flex items-center'>
               <span className="text-gray-600">Next Due:</span>
-              <span className="ml-2 font-semibold text-gray-900">{nextDueDate.substring(0, 10)}</span>
+              <span className="ml-2 font-semibold text-gray-900">{nextDueDate?.substring(0, 10) ?? 'Hasn\'t started yet'}</span>
             </div>
             {!userHasPaid && amountOwed > 0 && nextDueDate && (
               <div className='flex items-center'>

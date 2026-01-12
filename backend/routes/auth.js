@@ -110,7 +110,7 @@ router.post('/sendcode', async (req, res, next) => {
       </body>
       </html>
     `;
-    // await mail.sendEmail([email], `Your Authentication Code`, emailHTML);
+    await mail.sendEmail([email], `Your Authentication Code`, emailHTML);
 
     res.json({ success: true, message: 'Code sent' });
   }
@@ -134,15 +134,15 @@ router.get('/login', async (req, res, next) => {
     const user = users[0];
 
     // verify the code matches
-    // const authResult = await db.select('authentification', { user_id: user.id, code: parseInt(onetime_code) }, 'expiration');
-    // if (!authResult || authResult.length === 0) {
-    //   return res.status(401).json({ error: 'Invalid code' });
-    // }
+    const authResult = await db.select('authentification', { user_id: user.id, code: parseInt(onetime_code) }, 'expiration');
+    if (!authResult || authResult.length === 0) {
+      return res.status(401).json({ error: 'Invalid code' });
+    }
 
     // check if code has expired
-    // if (new Date(authResult[0].expiration) < new Date()) {
-    //   return res.status(401).json({ error: 'Code expired' });
-    // }
+    if (new Date(authResult[0].expiration) < new Date()) {
+      return res.status(401).json({ error: 'Code expired' });
+    }
 
     // create new user token
     const user_token = await db.insert('user_token', { user_id: user.id });
