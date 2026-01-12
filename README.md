@@ -55,8 +55,9 @@ It is a financial cooperative where:
 6. Access the application at [http://localhost:3000](http://localhost:3000)
 
 ## Testing
-- Run backend tests:
-
+1. use `db/create_db.sql` to create the db
+2. use `db/inser_example.sql` to fill the db
+3. Run backend tests on mockdatas:
     ```bash
     cd backend
     npm test

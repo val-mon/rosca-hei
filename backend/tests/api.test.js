@@ -344,9 +344,13 @@ describe('Circle API', () => {
         );
         const cycle_id = cycle.rows[0].id;
 
-        // Get a valid period from cycle with date as text
+        // Get the current period (same logic as /contribute route: period without payout)
         const periods = await db.query(
-            `SELECT id, TO_CHAR(due_date, 'YYYY-MM-DD') as period_date FROM period WHERE cycle_id = $1 AND valid = true LIMIT 1`,
+            `SELECT p.id, TO_CHAR(p.due_date, 'YYYY-MM-DD') as period_date
+             FROM period p
+             LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
+             WHERE p.cycle_id = $1 AND p.valid = true AND po.id IS NULL
+             ORDER BY p.due_date ASC LIMIT 1`,
             [cycle_id]
         );
         const period_id = periods.rows[0].id;
@@ -355,6 +359,9 @@ describe('Circle API', () => {
         // Get Alice's user_id
         const aliceToken = await db.select('user_token', { token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }, 'user_id');
         const alice_id = aliceToken[0].user_id;
+
+        // Clean up any existing contribution for this period first
+        await db.delete('contribution', { period_id: period_id, user_id: alice_id });
 
         // Make the contribution
         const res = await request(app)
@@ -405,7 +412,7 @@ describe('Circle API', () => {
         // Place the bid
         const res = await request(app)
             .post('/circle/auction')
-            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1, period_date: period_date, ammount: 950.00 });
+            .send({ user_token: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', circle_id: 1, period_date: period_date, ammount: 450.00 });
 
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
@@ -413,7 +420,7 @@ describe('Circle API', () => {
         // Verify auction bid was updated
         const auctions = await db.select('auction', { period_id: period_id, user_id: alice_id, valid: true }, 'ammount');
         expect(auctions.length).toBeGreaterThan(0);
-        expect(auctions[0].ammount).toBe("950.00");
+        expect(auctions[0].ammount).toBe("450.00");
 
         // Clean up - mark all Alice's auctions for this period as invalid
         await db.update('auction', { valid: false }, { period_id: period_id, user_id: alice_id });
