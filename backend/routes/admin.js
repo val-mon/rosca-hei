@@ -33,7 +33,7 @@ router.get('/globalstats', async (req, res, next) => {
          cy.contribution_amount * (
            SELECT COUNT(*)
            FROM circle_member cm
-           WHERE cm.circle_id = cy.circle_id
+           WHERE cm.circle_id = cy.circle_id AND cm.valid = true
          )
        ) AS total
         FROM cycle cy
@@ -49,7 +49,7 @@ router.get('/globalstats', async (req, res, next) => {
         SELECT COUNT(*) as member_count
         FROM circle_member cm
         JOIN circle c ON cm.circle_id = c.id
-        WHERE c.valid = true
+        WHERE c.valid = true AND cm.valid = true
         GROUP BY cm.circle_id
       ) as circle_sizes`
     );
@@ -91,7 +91,7 @@ router.get('/users', async (req, res, next) => {
         u.username as name,
         u.email,
         (SELECT MAX(ut.id) FROM user_token ut WHERE ut.user_id = u.id) as last_login,
-        (SELECT COUNT(*) FROM circle_member cm WHERE cm.user_id = u.id) as nbr_circles,
+        (SELECT COUNT(*) FROM circle_member cm WHERE cm.user_id = u.id AND cm.valid = true) as nbr_circles,
         (SELECT COUNT(*) > 0 FROM penalty p WHERE p.user_id = u.id AND p.waived = 0) as flaged
       FROM "user" u
       WHERE u.valid = true
@@ -165,12 +165,12 @@ router.get('/circles', async (req, res, next) => {
          JOIN circle_member cm ON cm.user_id = u.id
          WHERE cm.circle_id = c.id AND cm.is_admin = true
          LIMIT 1) as creator,
-        (SELECT COUNT(*) FROM circle_member cm WHERE cm.circle_id = c.id) as nbr_members,
+        (SELECT COUNT(*) FROM circle_member cm WHERE cm.circle_id = c.id AND cm.valid = true) as nbr_members,
         (SELECT COUNT(*) FROM period p
          JOIN cycle cy ON p.cycle_id = cy.id
          WHERE cy.circle_id = c.id) as progress,
         (SELECT SUM(cy.contribution_amount * (
-          SELECT COUNT(*) FROM circle_member cm WHERE cm.circle_id = c.id
+          SELECT COUNT(*) FROM circle_member cm WHERE cm.circle_id = c.id AND cm.valid = true
         ))
          FROM cycle cy WHERE cy.circle_id = c.id) as total_funds,
         (SELECT cy.auction_mode FROM cycle cy

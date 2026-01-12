@@ -197,6 +197,14 @@ export default function Home() {
   const handleKickMember = async (circleId: number, memberId: number) => {
     const result = await api.kickMember(userToken, circleId, memberId);
     if (result.success) {
+      // Refresh circles data
+      if (isAdmin) {
+        const circles = await api.getAllCircles(userToken);
+        setAdminCircles(circles);
+      } else {
+        const userCircles = await api.getCircles(userToken);
+        setCircles(userCircles);
+      }
       // Refresh circle details
       const circleData = await api.getCircleDetails(userToken, circleId);
       setSelectedCircleData(circleData);

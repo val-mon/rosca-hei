@@ -27,7 +27,7 @@ router.get('/userinfo', async (req, res, next) => {
           c.name,
           (SELECT cy.contribution_amount FROM cycle cy WHERE cy.circle_id = c.id ORDER BY cy.id DESC LIMIT 1) as contribution_amount,
           (SELECT cy.auction_mode FROM cycle cy WHERE cy.circle_id = c.id ORDER BY cy.id DESC LIMIT 1) as auction_mode,
-          (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id) as member_count,
+          (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id AND valid = true) as member_count,
           cm.is_admin,
           (SELECT p.due_date FROM period p
            LEFT JOIN payout po ON po.period_id = p.id AND po.valid = true
@@ -179,7 +179,7 @@ router.get('/useractiveauctions', async (req, res, next) => {
         c.name as circle_name,
         p.id as period_id,
         p.due_date as end_date,
-        cy.contribution_amount * (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id) as payout_amount,
+        cy.contribution_amount * (SELECT COUNT(*) FROM circle_member WHERE circle_id = c.id AND valid = true) as payout_amount,
         COALESCE(user_auction.ammount, 0) as user_bid_amount,
         COALESCE(max_auction.ammount, 0) as current_highest_bid,
         COALESCE(winner.username, '') as current_winner,

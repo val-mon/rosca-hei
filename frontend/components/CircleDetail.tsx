@@ -695,9 +695,9 @@ export default function CircleDetail({
                 onChange={(e) => setCycleContributionAmount(e.target.value)}
                 placeholder="Enter amount per period"
                 min={1}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 Total payout per period: {(parseFloat(cycleContributionAmount) || 0) * circleMembers} CHF
               </p>
             </div>
