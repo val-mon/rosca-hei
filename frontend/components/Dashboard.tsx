@@ -286,12 +286,12 @@ export default function Dashboard({ circles, activeAuctions, onSelectCircle, onP
                   <div className="space-y-2 mb-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Payout:</span>
-                      <span className="font-bold text-gray-900">${auction.payoutAmount}</span>
+                      <span className="font-bold text-gray-900">{auction.payoutAmount} CHF</span>
                     </div>
                     {auction.userBidAmount && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Your Bid:</span>
-                        <span className="font-bold text-indigo-600">${auction.userBidAmount}</span>
+                        <span className="font-bold text-indigo-600">{auction.userBidAmount} CHF</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">

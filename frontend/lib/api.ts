@@ -201,7 +201,29 @@ const api = {
         }
       );
       const data = await res.json();
-      return data.auctions;
+
+      // Convert snake_case to camelCase and calculate timeRemaining
+      return (data.auctions || []).map((auction: any) => {
+        const endDate = new Date(auction.end_date);
+        const now = new Date();
+        const diff = endDate.getTime() - now.getTime();
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const timeRemaining = diff > 0 ? `${hours}h ${minutes}m` : 'Ended';
+
+        return {
+          circleId: auction.circle_id,
+          circleName: auction.circle_name,
+          periodId: auction.period_id,
+          payoutAmount: auction.payout_amount,
+          userBidAmount: auction.user_bid_amount > 0 ? auction.user_bid_amount : undefined,
+          currentHighestBid: auction.current_highest_bid,
+          currentWinner: auction.current_winner,
+          isWinning: auction.is_winning,
+          endDate: auction.end_date,
+          timeRemaining
+        };
+      });
     }
   },
 
